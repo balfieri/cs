@@ -1,5 +1,3 @@
-#!/Users/bobbo/IDrive/Code/cs/cs
-
 #include "cs.h"
 
 int main( int argc, const char * argv[] )

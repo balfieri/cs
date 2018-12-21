@@ -22,14 +22,9 @@
 #
 # C++ Scripting Interpreter - compiles your .cs file using g++ and runs it
 #
-my $cs_name   = shift @ARGV;
-my @lines     = `cat $cs_name`;
-$lines[0] =~ /^#\!/ and shift @lines;
-my $cpp_name  = $cs_name . ".cpp";
-open( CPP, ">$cpp_name" ) or die "ERROR: could not open $cpp_name for writing\n";
-print CPP join( "", @lines );
-close( CPP );
-my $exe_name  = $cs_name . ".exe";
+my $cpp_name   = shift @ARGV;
+$exe_name = $cpp_name;
+$exe_name = $exe_name =~ s/\.cpp$//;
 my $CFLAGS = "-std=c++17 -O3 -Werror -Wextra -Wstrict-aliasing -pedantic -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs  -Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -g";
-system( "g++ ${CFLAGS} -I../ -o $exe_name $cpp_name" ) == 0 or die "ERROR: compile of $cs_name failed\n";
+system( "g++ ${CFLAGS} -I../ -o $exe_name $cpp_name" ) == 0 or die "ERROR: compile of $cpp_name failed\n";
 system( "./${exe_name}" );
