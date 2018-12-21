@@ -56,6 +56,7 @@ public:
     val( const val& x );
     static val list( void );
     static val list( int64_t cnt, const char * args[] );
+    static val map( void );
     ~val();
 
     operator bool( void ) const;
@@ -63,11 +64,11 @@ public:
     operator double( void ) const;
     operator std::string( void ) const;
 
-    operator = ( const bool x );
-    operator = ( const int64_t x );
-    operator = ( const double x );
-    operator = ( std::string x );
-    operator = ( const val& other );
+    val& operator = ( const bool x );
+    val& operator = ( const int64_t x );
+    val& operator = ( const double x );
+    val& operator = ( std::string x );
+    val& operator = ( const val& other );
 
     val& push( const val& x );
     val  shift( void );
@@ -86,10 +87,10 @@ private:
 
 // Misc Functions
 //
-constexpr val undef;
-inline    val list( void )                                      { return val::list(); }
-inline    val list( int64_t cnt, const char * args[] )          { return val::list(); }
-inline    val map( void )                                       { return val::map();  }
+const  val undef;
+inline val list( void )                                      { return val::list(); }
+inline val list( int64_t cnt, const char * args[] )          { return val::list( cnt, args ); }
+inline val map( void )                                       { return val::map();  }
 
 // Val x = func({ })
 // Val x = open(“file”, “w”)
