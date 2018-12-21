@@ -27,6 +27,8 @@
 #include <iostream>
 #include <iomanip>
 
+// dynamically-typed value
+//
 class val
 {
 public:
