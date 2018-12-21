@@ -4,7 +4,7 @@ and as a dynamically-typed scripting language.
 </p>
 
 <p>
-<b>This is all open-source.  Refer to the LICENSE.md for licensing details.
+<b>This is all open-source with no restrictions (MIT).  Refer to the LICENSE.md for details.</b>
 </p>
 
 <p>
