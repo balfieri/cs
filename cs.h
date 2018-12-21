@@ -72,6 +72,8 @@ public:
 
     val& push( const val& x );
     val  shift( void );
+    val  split( const val delim = "" );
+    val  join( const val delim = "" );
 
 private:
     KIND                kind;
@@ -92,15 +94,26 @@ inline val list( void )                                      { return val::list(
 inline val list( int64_t cnt, const char * args[] )          { return val::list( cnt, args ); }
 inline val map( void )                                       { return val::map();  }
 
-// Val x = func({ })
-// Val x = open(“file”, “w”)
-// Val x = y.matches( “regexp” )
-// Val x = ptr(obj)
-// Val x = thread( f, arg )
-// Val x = threads( n, f, arg )
-// Val x = pipepair(“app”)
-// Val x = output(“app”)
-// Val x = system(“app”)
+// makekind(SomeObject)
+// val x = new SomeObject()
+// SomeObject * y = x;
+// val m = module( "name" )
+// val x = kind( k )
+// val x = func( f )
+// val x = func( "code" )
+// val x = file(“file”, “w”)
+// val x = file( "w" )
+// val x = y.matches( “regexp” )
+// val x = ptr(obj)
+// val x = thread( f, arg )
+// x.join()
+// val x = threads( n, f, arg )
+// val x = process()            // fork
+// val x = process( x, ... )    // fork+exec of file name or file
+// val y = run( x )             // 
+// val x = pipepair(“app”)
+// val x = output(“app”)
+// val x = system(“app”)
 // x >> y
 // x << y
 // x[‘dfhf’] = rr
