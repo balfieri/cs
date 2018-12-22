@@ -172,7 +172,10 @@ public:
     virtual ~Custom()                           { csassert( ref_cnt == 0, "trying to destroy a Custom val when ref_cnt is not 0" ); }
 
     virtual std::string kind( void ) const      { return "Custom"; }
-    virtual operator std::string( void ) const  { return "[Custom]"; }
+    virtual operator bool( void ) const         { die( "no conversion available from Custom to bool" );        return false; }
+    virtual operator int64_t( void ) const      { die( "no conversion available from Custom to int64_t" );     return 0;     }
+    virtual operator double( void ) const       { die( "no conversion available from Custom to double" );      return 0.0;   }
+    virtual operator std::string( void ) const  { die( "no conversion available from Custom to std::string" ); return "";    }
 
 private:
     uint64_t ref_cnt;
@@ -377,6 +380,7 @@ val::operator bool( void ) const
         case kind::BOOL:                return u.b;
         case kind::INT:                 return u.i != 0;
         case kind::STR:                 return u.s->s == "true" || u.s->s == "1";
+        case kind::CUSTOM:              return *u.c;
         default:                        die( "can't convert " + kind_to_str(k) + " to bool" ); return false;
     }
 }
@@ -389,6 +393,7 @@ val::operator int64_t( void ) const
         case kind::INT:                 return u.i;
         case kind::FLT:                 return int64_t(u.f);
         case kind::STR:                 return std::atoi(u.s->s.c_str());
+        case kind::CUSTOM:              return *u.c;
         default:                        die( "can't convert " + kind_to_str(k) + " to int64_t" ); return 0;
     }
 }
@@ -400,6 +405,7 @@ val::operator double( void ) const
         case kind::INT:                 return double(u.i);
         case kind::FLT:                 return u.f;
         case kind::STR:                 return std::atof(u.s->s.c_str());
+        case kind::CUSTOM:              return *u.c;
         default:                        die( "can't convert " + kind_to_str(k) + " to double" ); return 0.0;
     }
 }
