@@ -68,11 +68,13 @@ public:
     static val map( void );
     ~val();
 
+    // conversions from val to common types
     operator bool( void ) const;
     operator int64_t( void ) const;
     operator double( void ) const;
     operator std::string( void ) const;
 
+    // these overwrite any previous contents
     val& operator = ( const kind x );
     val& operator = ( const bool x );
     val& operator = ( const int64_t x );
@@ -80,6 +82,14 @@ public:
     val& operator = ( std::string x );
     val& operator = ( const val& other );
 
+    // cool operators
+    val& operator [] ( const int64_t i );               // index into list or map
+    val& operator [] ( const std::string i );           // index into list or map
+    val& operator [] ( const val& i );                  // index into list or map
+    val  operator () ( ... );                           // function call
+    val  operator ,  ( const val& b );                  // list creation
+
+    // list-only operations
     val& push( const val& x );
     val  shift( void );
     val  split( const val delim = "" ) const;
@@ -312,15 +322,10 @@ val::operator bool( void ) const
 {
     switch( k )
     {
-        case kind::UNDEF:               return false;
-        case kind::KIND:                return u.k != kind::UNDEF;
         case kind::BOOL:                return u.b;
         case kind::INT:                 return u.i != 0;
-        case kind::FLT:                 return u.f != 0.0;
-        case kind::STR:                 return u.s->s.length() != 0;
-        case kind::LIST:                return u.l->l.size() != 0;
-        case kind::MAP:                 return u.m->m.size() != 0;
-        default:                        die( "can't convert val to bool" ); return false;
+        case kind::STR:                 return u.s->s == "true";
+        default:                        die( "can't convert " + kind_to_str(k) + " to bool" ); return false;
     }
 }
 
@@ -328,15 +333,11 @@ val::operator int64_t( void ) const
 {
     switch( k )
     {
-        case kind::UNDEF:               die( "val undefined" ); return 0;
-        case kind::KIND:                return int64_t(u.k);
         case kind::BOOL:                return int64_t(u.b);
         case kind::INT:                 return u.i;
         case kind::FLT:                 return int64_t(u.f);
         case kind::STR:                 return std::atoi(u.s->s.c_str());
-        case kind::LIST:                return u.l->l.size();
-        case kind::MAP:                 return u.m->m.size();
-        default:                        die( "can't convert val to int64_t" ); return 0;
+        default:                        die( "can't convert " + kind_to_str(k) + " to int64_t" ); return 0;
     }
 }
 
@@ -344,15 +345,10 @@ val::operator double( void ) const
 {
     switch( k )
     {
-        case kind::UNDEF:               die( "val undefined" ); return 0;
-        case kind::KIND:                return double(int64_t(u.k));
-        case kind::BOOL:                return double(int64_t(u.b));
         case kind::INT:                 return double(u.i);
         case kind::FLT:                 return u.f;
         case kind::STR:                 return std::atof(u.s->s.c_str());
-        case kind::LIST:                return double(u.l->l.size());
-        case kind::MAP:                 return double(u.m->m.size());
-        default:                        die( "can't convert val to double" ); return 0.0;
+        default:                        die( "can't convert " + kind_to_str(k) + " to double" ); return 0.0;
     }
 }
 
@@ -360,14 +356,13 @@ val::operator std::string( void ) const
 {
     switch( k )
     {
-        case kind::UNDEF:               return "undef";
         case kind::KIND:                return kind_to_str(u.k);
         case kind::BOOL:                return u.b ? "true" : "false";
         case kind::INT:                 return std::to_string(u.i);
         case kind::FLT:                 return std::to_string(u.f);
         case kind::STR:                 return u.s->s;
         case kind::LIST:                return join( " " );
-        default:                        die( "can't convert val to std:string" ); return "";
+        default:                        die( "can't convert " + kind_to_str(k) + " to std::string" ); return "";
     }
     
 }
