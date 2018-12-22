@@ -87,28 +87,56 @@ public:
 
 private:
     kind                        k;
+
+    struct String
+    {
+        uint64_t                ref_cnt;
+        std::string             s;
+    };
+
+    struct List
+    {
+        uint64_t                ref_cnt;
+        std::vector<val>        l;
+    };
+
+    struct Map
+    {
+        uint64_t                ref_cnt;
+        std::map<val,val>       m;
+    };
+
     union
     {
         bool                    b;
         kind                    k;
         int64_t                 i;
         double                  f;
-        std::string *           s;
-        std::vector<val> *      l;
-        std::map<val,val> *     m;
+        String *                s;
+        List *                  l;
+        Map *                   m;
     } u;
 
     void free( void );
 };
 
+// Globals
+//
+static const val undef;
+
 // Misc Functions
 //
-const  val undef;
-static void       die( std::string msg );
-#define           csassert( expr, msg ) if ( !(expr) ) die( msg )
 static inline val list( void )                                      { return val::list(); }
 static inline val list( int64_t cnt, const char * args[] )          { return val::list( cnt, args ); }
 static inline val map( void )                                       { return val::map();  }
+
+static inline void die( std::string msg )       
+{ 
+    std::cout << "ERROR: " << msg << "\n"; 
+    exit( 1 ); 
+}
+
+#define csassert( expr, msg ) if ( !(expr) ) die( msg )
 
 static inline std::ostream& operator << ( std::ostream &out, const val& x )
 {
@@ -171,12 +199,6 @@ std::string val::kind_to_str( const kind& k )
     }
 }
 
-void die( std::string msg )
-{
-    std::cout << "ERROR: " << msg << "\n";
-    exit( 1 );
-}
-
 inline val::val( void )
 {
     k = kind::UNDEF;
@@ -209,13 +231,15 @@ inline val::val( double x )
 inline val::val( const char * x )
 {
     k = kind::STR;
-    u.s = new std::string( x );
+    u.s = new String{ 1, std::string( x ) };
 }
 
 inline val::val( std::string x )
 {
     k = kind::STR;
-    u.s = new std::string( x );
+    u.s = new String;
+    u.s->ref_cnt = 1;
+    u.s->s = x;
 }
 
 inline val::val( const val& x )
@@ -227,7 +251,8 @@ inline val val::list( void )
 {
     val l;
     l.k = kind::LIST;
-    l.u.l = new std::vector<val>();
+    l.u.l = new List;
+    l.u.l->ref_cnt = 1;
     return l;
 }
 
@@ -245,7 +270,8 @@ inline val val::map( void )
 {
     val m;
     m.k = kind::MAP;
-    m.u.m = new std::map<val,val>();
+    m.u.m = new Map;
+    m.u.m->ref_cnt = 1;
     return m;
 }
 
@@ -254,17 +280,17 @@ inline void val::free( void )
     switch( k )
     {
         case kind::STR:
-            delete u.s;
+            if ( ++u.s->ref_cnt == 0 ) delete u.s;
             u.s = nullptr;
             break;
 
         case kind::LIST:
-            delete u.l;
+            if ( ++u.l->ref_cnt == 0 ) delete u.l;
             u.l = nullptr;
             break;
 
         case kind::MAP:
-            delete u.m;
+            if ( ++u.m->ref_cnt == 0 ) delete u.m;
             u.m = nullptr;
             break;
 
@@ -288,9 +314,9 @@ val::operator bool( void ) const
         case kind::BOOL:                return u.b;
         case kind::INT:                 return u.i != 0;
         case kind::FLT:                 return u.f != 0.0;
-        case kind::STR:                 return u.s->length() != 0;
-        case kind::LIST:                return u.l->size() != 0;
-        case kind::MAP:                 return u.m->size() != 0;
+        case kind::STR:                 return u.s->s.length() != 0;
+        case kind::LIST:                return u.l->l.size() != 0;
+        case kind::MAP:                 return u.m->m.size() != 0;
         default:                        die( "can't convert val to bool" ); return false;
     }
 }
@@ -304,9 +330,9 @@ val::operator int64_t( void ) const
         case kind::BOOL:                return int64_t(u.b);
         case kind::INT:                 return u.i;
         case kind::FLT:                 return int64_t(u.f);
-        case kind::STR:                 return std::atoi(u.s->c_str());
-        case kind::LIST:                return u.l->size();
-        case kind::MAP:                 return u.m->size();
+        case kind::STR:                 return std::atoi(u.s->s.c_str());
+        case kind::LIST:                return u.l->l.size();
+        case kind::MAP:                 return u.m->m.size();
         default:                        die( "can't convert val to int64_t" ); return 0;
     }
 }
@@ -320,9 +346,9 @@ val::operator double( void ) const
         case kind::BOOL:                return double(int64_t(u.b));
         case kind::INT:                 return double(u.i);
         case kind::FLT:                 return u.f;
-        case kind::STR:                 return std::atof(u.s->c_str());
-        case kind::LIST:                return double(u.l->size());
-        case kind::MAP:                 return double(u.m->size());
+        case kind::STR:                 return std::atof(u.s->s.c_str());
+        case kind::LIST:                return double(u.l->l.size());
+        case kind::MAP:                 return double(u.m->m.size());
         default:                        die( "can't convert val to double" ); return 0.0;
     }
 }
@@ -336,7 +362,7 @@ val::operator std::string( void ) const
         case kind::BOOL:                return u.b ? "true" : "false";
         case kind::INT:                 return std::to_string(u.i);
         case kind::FLT:                 return std::to_string(u.f);
-        case kind::STR:                 return *u.s;
+        case kind::STR:                 return u.s->s;
         default:                        die( "can't convert val to std:string" ); return "";
     }
     
@@ -378,7 +404,7 @@ val& val::operator = ( std::string x )
 {
     free();
     k = kind::STR;
-    u.s = new std::string( x );
+    u.s = new String{ 1, std::string( x ) };
     return *this;
 }
 
@@ -387,23 +413,29 @@ val& val::operator = ( const val& other )
     free();
     k = other.k;
     u = other.u;
+    switch( k ) 
+    {
+        case kind::LIST:        u.l->ref_cnt++; break;
+        case kind::MAP:         u.m->ref_cnt++; break;
+        default:                                break;
+    }
     return *this;
 }
 
 val& val::push( const val& x )
 {
     csassert( k == kind::LIST, "can only push a LIST" );
-    u.l->push_back( x );
+    u.l->l.push_back( x );
     return *this;
 }
 
 val  val::shift( void )
 {
     csassert( k == kind::LIST, "can only shift a LIST" );
-    csassert( !u.l->empty(), "trying to shift an empty LIST" );
-    auto it = u.l->begin();
+    csassert( !u.l->l.empty(), "trying to shift an empty LIST" );
+    auto it = u.l->l.begin();
     val v = *it;
-    u.l->erase( it );
+    u.l->l.erase( it );
     return v;
 }
 
@@ -411,9 +443,9 @@ val  val::join( const val delim )
 {
     csassert( k == kind::LIST, "can only join a LIST" );
     std::string s = "";
-    for( auto it = u.l->begin(); it != u.l->end(); it++ )
+    for( auto it = u.l->l.begin(); it != u.l->l.end(); it++ )
     {
-        if ( it != u.l->begin() ) s += std::string( delim );
+        if ( it != u.l->l.begin() ) s += std::string( delim );
         s += std::string( *it );
     }
     return val( s );
