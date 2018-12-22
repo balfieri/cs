@@ -30,6 +30,24 @@
 #include <iostream>
 #include <iomanip>
 
+// these sneaky proxies are used by the [] operator
+//
+class val;
+
+class ListProxy;
+
+class MapProxy
+{
+public:
+    MapProxy( val * v, std::string key ) : v(v), key(key)       {}
+    operator const val&() const;                                
+    void operator = ( const val& other );                      
+
+private:
+    val *       v;
+    std::string key;
+};
+
 // dynamically-typed value
 //
 class Custom;
@@ -60,7 +78,7 @@ public:
     operator int64_t( void ) const;
     operator double( void ) const;
     operator std::string( void ) const;
-    operator Custom *( void ) const;
+    operator Custom&( void ) const;
 
     // these overwrite any previous contents (including kind)
     val& operator = ( const bool x );
@@ -70,17 +88,27 @@ public:
     val& operator = ( Custom * x );
     val& operator = ( const val& other );
 
-    // cool operators
-    val& operator [] ( const int64_t i );               // index into list or map
-    val& operator [] ( const std::string i );           // index into list or map
-    val& operator [] ( const val& i );                  // index into list or map
-    val  operator () ( ... );                           // function call
-
     // list-only operations
+    val  get( int64_t i );                              // read list item i
+    val& set( int64_t i, const val& v );                // write list item i with v
     val& push( const val& x );
     val  shift( void );
     val  split( const val delim = "" ) const;
     val  join( const val delim = "" ) const;
+    val& operator , ( const val& b );                   // list concatenation
+
+    // map-only operations
+    val  get( std::string key );                        // read map using key 
+    val& set( std::string key, const val& v );          // write map using key with v
+
+    // list or map subscripting operator
+    val& operator [] ( const int64_t i );               
+    val& operator [] ( const double i );               
+    val& operator [] ( const std::string i );         
+    val& operator [] ( const val& i );               
+
+    // function-only operators
+    val  operator () ( ... );                           // function call
 
 private:
     enum class kind
@@ -119,7 +147,7 @@ private:
     struct Map
     {
         uint64_t                ref_cnt;
-        std::map<val,val>       m;
+        std::map<std::string,val> m;
     };
 
     union
@@ -215,8 +243,6 @@ private:
 // val v = 0;                   
 // out >> v;                         // one int64_t goes to v
 //
-// val x = list;                     // list to receive output
-// x << y                            // read output from sh into list x
 // x[‘dfhf’] = rr
 // foreach(e, x) ...
 // class X;
@@ -447,13 +473,10 @@ val::operator std::string( void ) const
     }
 }
 
-val::operator Custom *( void ) const
+val::operator Custom&( void ) const
 {
-    switch( k )
-    {
-        case kind::CUSTOM:              return u.c;
-        default:                        die( "can't convert " + kind_to_str(k) + " to Custom *" ); return nullptr;
-    }
+    csassert( k == kind::CUSTOM, "can't convert " + kind_to_str(k) + " to Custom *" );
+    return *u.c;
 }
 
 val& val::operator = ( const bool x )
