@@ -87,7 +87,6 @@ public:
     val& operator [] ( const std::string i );           // index into list or map
     val& operator [] ( const val& i );                  // index into list or map
     val  operator () ( ... );                           // function call
-    val  operator ,  ( const val& b );                  // list creation
 
     // list-only operations
     val& push( const val& x );
