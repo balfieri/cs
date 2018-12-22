@@ -214,6 +214,24 @@ private:
 // x << y
 // x[‘dfhf’] = rr
 // foreach(e, x) ...
+// class X;
+//  class Proxy {
+//      X*  object;
+//      Key key;
+//  public:
+//      Proxy(X* object, Key key): object(object), key(key) {}
+//      operator V() const { return object->read(key); }
+//      void operator=(V const& v) { object->write(key, v); }
+//  };
+//  class X {
+//      // ...
+//  public:
+//      V    read(key) const;
+//      void write(key, V const& v);
+//      Proxy operator[](Key key)       { return Proxy(this, key); }
+//      V     operator[](Key key) const { return this->read(key); }
+//      // ...
+//  };
 
 //-----------------------------------------------------
 //-----------------------------------------------------
