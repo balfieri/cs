@@ -1,3 +1,5 @@
 cs
+hello
 *.out
 *.o
+*.DSYM

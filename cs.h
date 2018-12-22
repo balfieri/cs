@@ -110,6 +110,12 @@ static inline val list( void )                                      { return val
 static inline val list( int64_t cnt, const char * args[] )          { return val::list( cnt, args ); }
 static inline val map( void )                                       { return val::map();  }
 
+static inline std::ostream& operator << ( std::ostream &out, const val& x )
+{
+    out << std::string(x); 
+    return out;
+}
+
 // makekind(SomeObject)
 // val x = new SomeObject()
 // SomeObject * y = x;
@@ -399,6 +405,18 @@ val  val::shift( void )
     val v = *it;
     u.l->erase( it );
     return v;
+}
+
+val  val::join( const val delim )
+{
+    csassert( k == kind::LIST, "can only join a LIST" );
+    std::string s = "";
+    for( auto it = u.l->begin(); it != u.l->end(); it++ )
+    {
+        if ( it != u.l->begin() ) s += std::string( delim );
+        s += std::string( *it );
+    }
+    return val( s );
 }
 
 #endif // __cs_h

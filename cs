@@ -23,8 +23,10 @@
 # C++ Scripting Interpreter - compiles your .cs file using g++ and runs it
 #
 my $cpp_name   = shift @ARGV;
+$cpp_name !~ /\.cpp$/ and $cpp_name .= ".cpp";
+-f $cpp_name or die "ERROR: could not find file $cpp_name\n";
 $exe_name = $cpp_name;
-$exe_name = $exe_name =~ s/\.cpp$//;
+$exe_name =~ s/\.cpp$//;
 my $CFLAGS = "-std=c++17 -O3 -Werror -Wextra -Wstrict-aliasing -pedantic -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs  -Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -g";
 system( "g++ ${CFLAGS} -I../ -o $exe_name $cpp_name" ) == 0 or die "ERROR: compile of $cpp_name failed\n";
 system( "./${exe_name}" );
