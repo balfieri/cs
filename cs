@@ -29,4 +29,5 @@ $exe_name = $cpp_name;
 $exe_name =~ s/\.cpp$//;
 my $CFLAGS = "-std=c++17 -O3 -Werror -Wextra -Wstrict-aliasing -pedantic -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs  -Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -g";
 system( "g++ ${CFLAGS} -I../ -o $exe_name $cpp_name" ) == 0 or die "ERROR: compile of $cpp_name failed\n";
-system( "./${exe_name}" );
+my $cmd = "./${exe_name} " . join( " ", @ARGV );
+system( $cmd ) == 0 or die "ERROR: command failed: $cmd\n";
