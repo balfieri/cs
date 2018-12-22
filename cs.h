@@ -32,54 +32,42 @@
 
 // dynamically-typed value
 //
+class Custom;
+
 class val
 {
 public:
-    enum class kind
-    {
-        KIND,
-        UNDEF,
-        BOOL,
-        INT,
-        FLT,
-        STR,
-        LIST,
-        MAP,
-        FUNC,
-        FILE,
-        THREAD,
-        PROCESS,
-        MODULE,
-    };
-
-    static std::string kind_to_str( const kind& k );
-
     // constructors
     val( void );
-    val( kind x );
     val( bool x );
     val( int64_t x );
     val( double x );
     val( const char * x );
     val( std::string x );
     val( const val& x );
+    val( Custom * x );
     static val list( void );
     static val list( int64_t cnt, const char * args[] );
     static val map( void );
     ~val();
+
+    // introspection
+    bool        defined( void ) const;
+    std::string kind( void ) const;
 
     // conversions from val to common types
     operator bool( void ) const;
     operator int64_t( void ) const;
     operator double( void ) const;
     operator std::string( void ) const;
+    operator Custom *( void ) const;
 
-    // these overwrite any previous contents
-    val& operator = ( const kind x );
+    // these overwrite any previous contents (including kind)
     val& operator = ( const bool x );
     val& operator = ( const int64_t x );
     val& operator = ( const double x );
     val& operator = ( std::string x );
+    val& operator = ( Custom * x );
     val& operator = ( const val& other );
 
     // cool operators
@@ -95,7 +83,26 @@ public:
     val  join( const val delim = "" ) const;
 
 private:
-    kind                        k;
+    enum class kind
+    {
+        KIND,
+        UNDEF,
+        BOOL,
+        INT,
+        FLT,
+        STR,
+        LIST,
+        MAP,
+        FUNC,
+        FILE,
+        THREAD,
+        PROCESS,
+        CUSTOM,
+    };
+
+    static std::string kind_to_str( const enum kind& k );
+
+    enum kind                   k;
 
     struct String
     {
@@ -118,12 +125,12 @@ private:
     union
     {
         bool                    b;
-        kind                    k;
         int64_t                 i;
         double                  f;
         String *                s;
         List *                  l;
         Map *                   m;
+        Custom *                c;
     } u;
 
     void free( void );
@@ -156,17 +163,41 @@ static inline std::ostream& operator << ( std::ostream &out, const val& x )
     return out;
 }
 
-// makekind(SomeObject)
-// val x = new SomeObject()
-// SomeObject * y = x;
-// val m = module( "name" )
-// val x = kind( k )
+// Custom Val
+//
+class Custom
+{
+public:
+    Custom( void )                              { ref_cnt = 1; }
+    virtual ~Custom()                           { csassert( ref_cnt == 0, "trying to destroy a Custom val when ref_cnt is not 0" ); }
+
+    virtual std::string kind( void ) const      { return "Custom"; }
+    virtual operator std::string( void ) const  { return "[Custom]"; }
+
+private:
+    uint64_t ref_cnt;
+
+    friend class val;
+
+    inline void inc_ref_cnt( void )            
+    { 
+        csassert( ref_cnt != 0, "shouldn't be incrementing a zero ref_cnt for a Custom val" ); 
+        ref_cnt++;
+    }
+
+    inline uint64_t dec_ref_cnt( void )            
+    { 
+        csassert( ref_cnt != 0, "trying to decfrement a zero ref_cnt for a Custom val" );
+        ref_cnt--;
+        return ref_cnt;
+    }
+};
+
 // val x = func( f )
 // val x = func( "code" )
 // val x = file(“file”, “w”)
 // val x = file( "w" )
 // val x = y.matches( “regexp” )
-// val x = ptr(obj)
 // val x = thread( f, arg )
 // x.join()
 // val x = threads( n, f, arg )
@@ -189,7 +220,7 @@ static inline std::ostream& operator << ( std::ostream &out, const val& x )
 //-----------------------------------------------------
 //-----------------------------------------------------
 
-std::string val::kind_to_str( const kind& k )
+std::string val::kind_to_str( const enum kind& k )
 {
     #define kcase( _k ) case kind::_k: return #_k;
     switch( k )
@@ -206,7 +237,7 @@ std::string val::kind_to_str( const kind& k )
         kcase( FILE )
         kcase( THREAD )
         kcase( PROCESS )
-        kcase( MODULE )
+        kcase( CUSTOM )
         default: return "<unknown kind>";
     }
 }
@@ -214,12 +245,6 @@ std::string val::kind_to_str( const kind& k )
 inline val::val( void )
 {
     k = kind::UNDEF;
-}
-
-inline val::val( kind x )
-{
-    k = kind::KIND;
-    u.k = x;
 }
 
 inline val::val( bool x )
@@ -254,6 +279,13 @@ inline val::val( std::string x )
     u.s = new String;
     u.s->ref_cnt = 1;
     u.s->s = x;
+}
+
+inline val::val( Custom * x )
+{
+    x->inc_ref_cnt();
+    k = kind::CUSTOM;
+    u.c = x;
 }
 
 inline val::val( const val& x )
@@ -312,6 +344,11 @@ inline void val::free( void )
             u.m = nullptr;
             break;
 
+        case kind::CUSTOM:
+            if ( u.c->dec_ref_cnt() == 0 ) delete u.c;
+            u.c = nullptr;
+            break;
+
         default:
             break;
     }
@@ -323,13 +360,23 @@ inline val::~val()
     free();
 }
 
+bool val::defined( void ) const
+{
+    return k != kind::UNDEF;
+}
+
+std::string val::kind( void ) const
+{
+    return (k == kind::CUSTOM) ? u.c->kind() : kind_to_str( k );
+}
+
 val::operator bool( void ) const
 {
     switch( k )
     {
         case kind::BOOL:                return u.b;
         case kind::INT:                 return u.i != 0;
-        case kind::STR:                 return u.s->s == "true";
+        case kind::STR:                 return u.s->s == "true" || u.s->s == "1";
         default:                        die( "can't convert " + kind_to_str(k) + " to bool" ); return false;
     }
 }
@@ -361,23 +408,23 @@ val::operator std::string( void ) const
 {
     switch( k )
     {
-        case kind::KIND:                return kind_to_str(u.k);
         case kind::BOOL:                return u.b ? "true" : "false";
         case kind::INT:                 return std::to_string(u.i);
         case kind::FLT:                 return std::to_string(u.f);
         case kind::STR:                 return u.s->s;
         case kind::LIST:                return join( " " );
+        case kind::CUSTOM:              return *u.c;
         default:                        die( "can't convert " + kind_to_str(k) + " to std::string" ); return "";
     }
-    
 }
 
-val& val::operator = ( const kind x )
+val::operator Custom *( void ) const
 {
-    free();
-    k = kind::KIND;
-    u.k = x;
-    return *this;
+    switch( k )
+    {
+        case kind::CUSTOM:              return u.c;
+        default:                        die( "can't convert " + kind_to_str(k) + " to Custom *" ); return nullptr;
+    }
 }
 
 val& val::operator = ( const bool x )
@@ -409,6 +456,15 @@ val& val::operator = ( std::string x )
     free();
     k = kind::STR;
     u.s = new String{ 1, std::string( x ) };
+    return *this;
+}
+
+val& val::operator = ( Custom * x )
+{
+    free();
+    x->inc_ref_cnt();
+    k = kind::CUSTOM;
+    u.c = x;
     return *this;
 }
 
