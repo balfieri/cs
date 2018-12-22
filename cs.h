@@ -243,7 +243,9 @@ inline val::val( double x )
 inline val::val( const char * x )
 {
     k = kind::STR;
-    u.s = new String{ 1, std::string( x ) };
+    u.s = new String;
+    u.s->ref_cnt = 1;
+    u.s->s = std::string( x );
 }
 
 inline val::val( std::string x )
@@ -256,6 +258,7 @@ inline val::val( std::string x )
 
 inline val::val( const val& x )
 {
+    k = kind::UNDEF;
     *this = x;
 }
 
@@ -292,17 +295,20 @@ inline void val::free( void )
     switch( k )
     {
         case kind::STR:
-            if ( ++u.s->ref_cnt == 0 ) delete u.s;
+            csassert( u.s->ref_cnt > 0, "bad STR ref count" );
+            if ( --u.s->ref_cnt == 0 ) delete u.s;
             u.s = nullptr;
             break;
 
         case kind::LIST:
-            if ( ++u.l->ref_cnt == 0 ) delete u.l;
+            csassert( u.l->ref_cnt > 0, "bad LIST ref count" );
+            if ( --u.l->ref_cnt == 0 ) delete u.l;
             u.l = nullptr;
             break;
 
         case kind::MAP:
-            if ( ++u.m->ref_cnt == 0 ) delete u.m;
+            csassert( u.l->ref_cnt > 0, "bad MAP ref count" );
+            if ( --u.m->ref_cnt == 0 ) delete u.m;
             u.m = nullptr;
             break;
 
@@ -413,6 +419,7 @@ val& val::operator = ( const val& other )
     u = other.u;
     switch( k ) 
     {
+        case kind::STR:         u.s->ref_cnt++; break;
         case kind::LIST:        u.l->ref_cnt++; break;
         case kind::MAP:         u.m->ref_cnt++; break;
         default:                                break;
