@@ -204,14 +204,19 @@ private:
 // val x = thread( f, arg )
 // x.join()
 // val x = threads( n, f, arg )
-// val x = process()            // fork
-// val x = process( x, ... )    // fork+exec of file name or file
-// val y = run( x )             // 
-// val x = pipepair(“app”)
-// val x = output(“app”)
-// val x = system(“app”)
-// x >> y
-// x << y
+// val out = run("ls -l");           // outputs a list of lines
+// val fd = exec("/bin/bash");       // returns list of 3 file() for stdin, stdout, stderr
+// val fd = exec("/bin/bash", "2>1");// returns list of 2 file() for stdin, stdout+stderr
+// val cmd = fd[0];                  // stdin of sh
+// val out = fd[1];                  // stdout+stderr of sh
+// cmd << "ls -l\n";                 // write string to stdin of sh
+// val v = list();
+// out >> v;                         // all output geos to v
+// val v = 0;                   
+// out >> v;                         // one int64_t goes to v
+//
+// val x = list;                     // list to receive output
+// x << y                            // read output from sh into list x
 // x[‘dfhf’] = rr
 // foreach(e, x) ...
 // class X;
