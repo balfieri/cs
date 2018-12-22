@@ -82,8 +82,8 @@ public:
 
     val& push( const val& x );
     val  shift( void );
-    val  split( const val delim = "" );
-    val  join( const val delim = "" );
+    val  split( const val delim = "" ) const;
+    val  join( const val delim = "" ) const;
 
 private:
     kind                        k;
@@ -123,6 +123,9 @@ private:
 // Globals
 //
 static const val undef;
+std::istream& cin  = std::cin;
+std::ostream& cout = std::cout;
+std::ostream& cerr = std::cerr;
 
 // Misc Functions
 //
@@ -363,6 +366,7 @@ val::operator std::string( void ) const
         case kind::INT:                 return std::to_string(u.i);
         case kind::FLT:                 return std::to_string(u.f);
         case kind::STR:                 return u.s->s;
+        case kind::LIST:                return join( " " );
         default:                        die( "can't convert val to std:string" ); return "";
     }
     
@@ -439,7 +443,7 @@ val  val::shift( void )
     return v;
 }
 
-val  val::join( const val delim )
+val  val::join( const val delim ) const
 {
     csassert( k == kind::LIST, "can only join a LIST" );
     std::string s = "";

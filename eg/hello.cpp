@@ -3,7 +3,6 @@
 int main( int argc, const char * argv[] )
 {
     val args = list( argc, argv );
-    std::cout << "hello\n";
-    std::cout << "Command line: " << args.join() << "\n";
+    cout << "Command line args: " << args << "\n";
     return 0;
 }
