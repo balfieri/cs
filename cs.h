@@ -30,22 +30,20 @@
 #include <iostream>
 #include <iomanip>
 
-// these sneaky proxies are used by the [] operator
+// Proxy used by the [] operator to distinguish get() vs. set()
 //
 class val;
 
-class ListProxy;
-
-class MapProxy
+class ValProxy
 {
 public:
-    MapProxy( val * v, std::string key ) : v(v), key(key)       {}
-    operator const val&() const;                                
+    ValProxy( val * v, const val * key ) : v(v), key(key) {}
+    operator const val&( void ) const;                                
     void operator = ( const val& other );                      
 
 private:
     val *       v;
-    std::string key;
+    const val * key;
 };
 
 // dynamically-typed value
@@ -89,26 +87,22 @@ public:
     val& operator = ( const val& other );
 
     // list-only operations
-    val  get( int64_t i );                              // read list item i
-    val& set( int64_t i, const val& v );                // write list item i with v
-    val& push( const val& x );
-    val  shift( void );
-    val  split( const val delim = "" ) const;
-    val  join( const val delim = "" ) const;
-    val& operator , ( const val& b );                   // list concatenation
+    val&       push( const val& x );
+    val        shift( void );
+    val        split( const val delim = "" ) const;
+    val        join( const val delim = "" ) const;
+    val& operator , ( const val& b );                         // list concatenation
 
     // map-only operations
-    val  get( std::string key );                        // read map using key 
-    val& set( std::string key, const val& v );          // write map using key with v
 
     // list or map subscripting operator
-    val& operator [] ( const int64_t i );               
-    val& operator [] ( const double i );               
-    val& operator [] ( const std::string i );         
-    val& operator [] ( const val& i );               
+    const val& get( const val& key ) const;                   // read list/map using key 
+    val&       set( const val& key, const val& v );           // write list/map using key with v
+    ValProxy   operator[]( const val& key );                  // could be read or write
+    const val& operator[]( const val& key ) const;            // read only
 
     // function-only operators
-    val  operator () ( ... );                           // function call
+    val  operator () ( ... );                                 // function call
 
 private:
     enum class kind
@@ -245,24 +239,6 @@ private:
 //
 // x[‘dfhf’] = rr
 // foreach(e, x) ...
-// class X;
-//  class Proxy {
-//      X*  object;
-//      Key key;
-//  public:
-//      Proxy(X* object, Key key): object(object), key(key) {}
-//      operator V() const { return object->read(key); }
-//      void operator=(V const& v) { object->write(key, v); }
-//  };
-//  class X {
-//      // ...
-//  public:
-//      V    read(key) const;
-//      void write(key, V const& v);
-//      Proxy operator[](Key key)       { return Proxy(this, key); }
-//      V     operator[](Key key) const { return this->read(key); }
-//      // ...
-//  };
 
 //-----------------------------------------------------
 //-----------------------------------------------------
@@ -563,5 +539,11 @@ val  val::join( const val delim ) const
     }
     return val( s );
 }
+
+inline       ValProxy::operator const val&( void ) const        { return v->get( *key );   }
+inline void  ValProxy::operator = ( const val& other )          { v->set( *key, other );   }
+
+inline ValProxy   val::operator [] ( const val& key )           { return ValProxy( this, &key ); }
+inline const val& val::operator [] ( const val& key ) const     { return get( key );             }
 
 #endif // __cs_h
