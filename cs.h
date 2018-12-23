@@ -86,6 +86,9 @@ public:
     val& operator = ( Custom * x );
     val& operator = ( const val& other );
 
+    val& operator << ( const val& x );                          // insert x into this val
+    val& operator >> ( val& x );                                // extract x from this val
+
     // list-only operations
     val&       push( const val& x );
     val        shift( void );
@@ -97,7 +100,7 @@ public:
 
     // list or map subscripting operator
     const val& get( const val& key ) const;                   // read list/map using key 
-    val&       set( const val& key, const val& v );           // write list/map using key with v
+    void       set( const val& key, const val& v );           // write list/map using key with v
     ValProxy   operator[]( const val& key );                  // could be read or write
     const val& operator[]( const val& key ) const;            // read only
 
@@ -107,7 +110,6 @@ public:
 private:
     enum class kind
     {
-        KIND,
         UNDEF,
         BOOL,
         INT,
@@ -199,6 +201,13 @@ public:
     virtual operator double( void ) const       { die( "no conversion available from Custom to double" );      return 0.0;   }
     virtual operator std::string( void ) const  { die( "no conversion available from Custom to std::string" ); return "";    }
 
+    virtual Custom& operator =  ( const val& x ) { die( "no override available for assigning to Custom" );     (void)x; return *this; } 
+    virtual Custom& operator << ( const val& x ) { die( "no override available for inserting into a Custom" ); (void)x; return *this; }
+    virtual Custom& operator >> ( val& x )       { die( "no override available for extracing from a Custom" ); (void)x; return *this; }
+
+    virtual const val& get( const val& key ) const         { die( "no override available for get() of Custom" ); (void)key; return undef; }
+    virtual void       set( const val& key, const val& x ) { die( "no override available for set() of Custom" ); (void)key; (void)x;  }
+
 private:
     uint64_t ref_cnt;
 
@@ -253,7 +262,6 @@ std::string val::kind_to_str( const enum kind& k )
     #define kcase( _k ) case kind::_k: return #_k;
     switch( k )
     {
-        kcase( KIND )
         kcase( UNDEF )
         kcase( BOOL )
         kcase( INT )
@@ -388,17 +396,17 @@ inline val::~val()
     free();
 }
 
-bool val::defined( void ) const
+inline bool val::defined( void ) const
 {
     return k != kind::UNDEF;
 }
 
-std::string val::kind( void ) const
+inline std::string val::kind( void ) const
 {
     return (k == kind::CUSTOM) ? u.c->kind() : kind_to_str( k );
 }
 
-val::operator bool( void ) const
+inline val::operator bool( void ) const
 {
     switch( k )
     {
@@ -410,7 +418,7 @@ val::operator bool( void ) const
     }
 }
 
-val::operator int64_t( void ) const
+inline val::operator int64_t( void ) const
 {
     switch( k )
     {
@@ -423,7 +431,7 @@ val::operator int64_t( void ) const
     }
 }
 
-val::operator double( void ) const
+inline val::operator double( void ) const
 {
     switch( k )
     {
@@ -435,7 +443,7 @@ val::operator double( void ) const
     }
 }
 
-val::operator std::string( void ) const
+inline val::operator std::string( void ) const
 {
     switch( k )
     {
@@ -449,13 +457,13 @@ val::operator std::string( void ) const
     }
 }
 
-val::operator Custom&( void ) const
+inline val::operator Custom&( void ) const
 {
     csassert( k == kind::CUSTOM, "can't convert " + kind_to_str(k) + " to Custom *" );
     return *u.c;
 }
 
-val& val::operator = ( const bool x )
+inline val& val::operator = ( const bool x )
 {
     free();
     k = kind::BOOL;
@@ -463,7 +471,7 @@ val& val::operator = ( const bool x )
     return *this;
 }
 
-val& val::operator = ( const int64_t x )
+inline val& val::operator = ( const int64_t x )
 {
     free();
     k = kind::INT;
@@ -471,7 +479,7 @@ val& val::operator = ( const int64_t x )
     return *this;
 }
 
-val& val::operator = ( const double x )
+inline val& val::operator = ( const double x )
 {
     free();
     k = kind::FLT;
@@ -479,7 +487,7 @@ val& val::operator = ( const double x )
     return *this;
 }
 
-val& val::operator = ( std::string x )
+inline val& val::operator = ( std::string x )
 {
     free();
     k = kind::STR;
@@ -487,7 +495,7 @@ val& val::operator = ( std::string x )
     return *this;
 }
 
-val& val::operator = ( Custom * x )
+inline val& val::operator = ( Custom * x )
 {
     free();
     x->inc_ref_cnt();
@@ -496,7 +504,7 @@ val& val::operator = ( Custom * x )
     return *this;
 }
 
-val& val::operator = ( const val& other )
+inline val& val::operator = ( const val& other )
 {
     free();
     k = other.k;
@@ -506,19 +514,44 @@ val& val::operator = ( const val& other )
         case kind::STR:         u.s->ref_cnt++; break;
         case kind::LIST:        u.l->ref_cnt++; break;
         case kind::MAP:         u.m->ref_cnt++; break;
+        case kind::CUSTOM:      *u.c = other;   break;
         default:                                break;
     }
     return *this;
 }
 
-val& val::push( const val& x )
+inline val& val::operator << ( const val& x )
+{
+    switch( k ) 
+    {
+        case kind::STR:         u.s->s += std::string( x );                             break;
+        case kind::LIST:        push( x );                                              break;
+        case kind::CUSTOM:      *u.c << x;                                              break;
+        default:                die( "can't insert into " + kind_to_str(k) + " val" );  break;
+    }
+    return *this;
+}
+
+inline val& val::operator >> ( val& x )
+{
+    switch( k ) 
+    {
+        case kind::STR:         x = *this;                                              break;
+        case kind::LIST:        x = shift();                                            break;
+        case kind::CUSTOM:      *u.c >> x;                                              break;
+        default:                die( "can't insert into " + kind_to_str(k) + " val" );  break;
+    }
+    return *this;
+}
+
+inline val& val::push( const val& x )
 {
     csassert( k == kind::LIST, "can only push a LIST" );
     u.l->l.push_back( x );
     return *this;
 }
 
-val  val::shift( void )
+inline val  val::shift( void )
 {
     csassert( k == kind::LIST, "can only shift a LIST" );
     csassert( !u.l->l.empty(), "trying to shift an empty LIST" );
@@ -528,7 +561,7 @@ val  val::shift( void )
     return v;
 }
 
-val  val::join( const val delim ) const
+inline val  val::join( const val delim ) const
 {
     csassert( k == kind::LIST, "can only join a LIST" );
     std::string s = "";
@@ -538,6 +571,66 @@ val  val::join( const val delim ) const
         s += std::string( *it );
     }
     return val( s );
+}
+
+inline const val& val::get( const val& key ) const
+{
+    switch( k ) 
+    {
+        case kind::LIST:        
+        {
+            int64_t index = key;
+            csassert( index >= 0 && index < int64_t(u.l->l.size()), "LIST index is out of range" );
+            return u.l->l[index];
+        }
+
+        case kind::MAP:        
+        {
+            auto it = u.m->m.find( std::string( key ) );
+            return (it == u.m->m.end()) ? undef : it->second;
+        }
+
+        case kind::CUSTOM:      
+        {
+            return u.c->get( key );
+        }
+
+        default:
+        {
+            die( "can't call get() on a " + kind_to_str(k) + " val" );  
+            return undef;
+        }
+    }
+}
+
+inline void val::set( const val& key, const val& v )
+{
+    switch( k ) 
+    {
+        case kind::LIST:        
+        {
+            u.l->l[int64_t(key)] = v;
+            break;
+        }
+
+        case kind::MAP:        
+        {
+            u.m->m[std::string(key)] = v;
+            break;
+        }
+
+        case kind::CUSTOM:      
+        {
+            u.c->set( key, v );
+            break;
+        }
+
+        default:
+        {
+            die( "can't call set() on a " + kind_to_str(k) + " val" );  
+            break;
+        }
+    }
 }
 
 inline       ValProxy::operator const val&( void ) const        { return v->get( *key );   }
