@@ -163,10 +163,10 @@ private:
 
 // Globals
 //
-static const val undef;
-std::istream& cin  = std::cin;
-std::ostream& cout = std::cout;
-std::ostream& cerr = std::cerr;
+static const val     undef;
+static std::istream& cin  = std::cin;
+static std::ostream& cout = std::cout;
+static std::ostream& cerr = std::cerr;
 
 // Misc Functions
 //
