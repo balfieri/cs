@@ -99,6 +99,7 @@ public:
     // map-only operations
 
     // list or map subscripting operator
+    bool       exists( const val& key ) const;                // returns true if key has a legal value in list/map
     const val& get( const val& key ) const;                   // read list/map using key 
     void       set( const val& key, const val& v );           // write list/map using key with v
     ValProxy   operator[]( const val& key );                  // could be read or write
@@ -205,6 +206,7 @@ public:
     virtual Custom& operator << ( const val& x ) { die( "no override available for inserting into a Custom" ); (void)x; return *this; }
     virtual Custom& operator >> ( val& x )       { die( "no override available for extracing from a Custom" ); (void)x; return *this; }
 
+    virtual bool       exists( const val& key ) const      { die( "no override available for exists() of Custom" ); (void)key; return false; }
     virtual const val& get( const val& key ) const         { die( "no override available for get() of Custom" ); (void)key; return undef; }
     virtual void       set( const val& key, const val& x ) { die( "no override available for set() of Custom" ); (void)key; (void)x;  }
 
@@ -573,6 +575,35 @@ inline val  val::join( const val delim ) const
     return val( s );
 }
 
+inline bool val::exists( const val& key ) const
+{
+    switch( k ) 
+    {
+        case kind::LIST:        
+        {
+            int64_t index = key;
+            return index >= 0 && index < int64_t(u.l->l.size());
+        }
+
+        case kind::MAP:        
+        {
+            auto it = u.m->m.find( std::string( key ) );
+            return it != u.m->m.end();
+        }
+
+        case kind::CUSTOM:      
+        {
+            return u.c->exists( key );
+        }
+
+        default:
+        {
+            die( "can't call exists() on a " + kind_to_str(k) + " val" );  
+            return false;
+        }
+    }
+}
+
 inline const val& val::get( const val& key ) const
 {
     switch( k ) 
@@ -587,7 +618,8 @@ inline const val& val::get( const val& key ) const
         case kind::MAP:        
         {
             auto it = u.m->m.find( std::string( key ) );
-            return (it == u.m->m.end()) ? undef : it->second;
+            csassert( it != u.m->m.end(), "MAP key " + std::string(key) + " does not exist" );
+            return it->second;
         }
 
         case kind::CUSTOM:      
