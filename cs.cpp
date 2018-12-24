@@ -31,6 +31,8 @@
 
 int main( int argc, const char * argv[] )
 {
+    //cout << argv[1] << "\n";
+    //return 0;
     csassert( argc > 1, "current usage: cs <basename>" );
     val cs_dir = exe_path_dir();
     std::string exe_name = argv[1];
