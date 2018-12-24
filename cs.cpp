@@ -42,5 +42,7 @@ int main( int argc, const char * argv[] )
     std::string cmd = "g++ " + CFLAGS + " -o " + exe_name + " " + cpp_name;
     cout << cmd << "\n";
     std::system( cmd.c_str() );
+    cmd = "./" + exe_name;
+    std::system( cmd.c_str() );
     return 0;
 }
