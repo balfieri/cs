@@ -30,6 +30,13 @@
 #include <iostream>
 #include <iomanip>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <libproc.h>
+
 // Proxy used by the [] operator to distinguish get() vs. set()
 //
 class val;
@@ -173,6 +180,9 @@ static std::ostream& cerr = std::cerr;
 static inline val list( void )                                      { return val::list(); }
 static inline val list( int64_t cnt, const char * args[] )          { return val::list( cnt, args ); }
 static inline val map( void )                                       { return val::map();  }
+
+static val exe_path( void );
+static val exe_path_dir( void );
 
 static inline void die( std::string msg )       
 { 
@@ -669,5 +679,22 @@ inline void  ValProxy::operator = ( const val& other )          { v->set( *key, 
 
 inline ValProxy   val::operator [] ( const val& key )           { return ValProxy( this, &key ); }
 inline const val& val::operator [] ( const val& key ) const     { return get( key );             }
+
+inline val exe_path( void )
+{
+    pid_t pid = getpid();
+    char path[PROC_PIDPATHINFO_MAXSIZE];
+    int ret = proc_pidpath( pid, path, sizeof(path) );
+    csassert( ret > 0, "proc_pidpath() had an error" );
+    return val( path );
+}
+
+inline val exe_path_dir( void )
+{
+    std::string path = exe_path();
+    size_t pos = path.find_last_of( "/\\" );
+    return val( path.substr( 0, pos ) );
+    return val( path );
+}
 
 #endif // __cs_h

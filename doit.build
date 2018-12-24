@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+#
+use strict;
+use warnings;
+
+my $prog = "cs";
+
+my $CFLAGS = "-std=gnu++0x -Wextra -Wstrict-aliasing -pedantic -Werror -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -O3 -g";
+`uname` !~ /Darwin/ and $CFLAGS .= " -Wlogical-op -Wstrict-null-sentinel";
+`uname` =~ /Darwin/ and $CFLAGS .= " -Wno-unused-parameter -Wno-shift-negative-value -Wno-c++14-binary-literal -ferror-limit=10 -DNO_FMT_LLU";
+
+system( "g++ -g -o ${prog} ${CFLAGS} ${prog}.cpp" ) == 0 or die "ERROR: compile failed\n";
