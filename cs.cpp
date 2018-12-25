@@ -29,20 +29,22 @@
 //
 #include "cs.h"                 // this interpreter is also a C++ script (or will be soon)
 
+using std::cout;
+
 int main( int argc, const char * argv[] )
 {
     csassert( argc > 1, "current usage: cs <basename>" );
     val cs_dir = val::exe_path_dir();
-    std::string exe_name = argv[1];
-    std::string cpp_name = exe_name + ".cpp";
-    std::string CFLAGS  = "-std=c++17 -O3 -Werror -Wextra -Wstrict-aliasing -pedantic -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization";
-                CFLAGS += " -Wformat=2 -Winit-self -Wmissing-include-dirs  -Woverloaded-virtual -Wredundant-decls -Wsign-promo";
-                CFLAGS += " -Wstrict-overflow=5 -Wswitch-default -Wundef -g";
-                CFLAGS += " -I \"" + std::string(cs_dir) + "\"";
-    std::string cmd = "g++ " + CFLAGS + " -o " + exe_name + " " + cpp_name;
-    std::cout << cmd << "\n";
-    std::system( cmd.c_str() );
-    cmd = "./" + exe_name;
-    std::system( cmd.c_str() );
+    val exe_name = argv[1];
+    val cpp_name = exe_name + ".cpp";
+    val CFLAGS  = "-std=c++17 -O3 -Werror -Wextra -Wstrict-aliasing -pedantic -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization";
+        CFLAGS += " -Wformat=2 -Winit-self -Wmissing-include-dirs  -Woverloaded-virtual -Wredundant-decls -Wsign-promo";
+        CFLAGS += " -Wstrict-overflow=5 -Wswitch-default -Wundef -g";
+        CFLAGS += val(" -I \"") + cs_dir + "\"";
+    val cmd = val("g++ ") + CFLAGS + " -o " + exe_name + " " + cpp_name;
+    cout << cmd << "\n";
+    cmd.run();
+    cmd = val("./") + exe_name;
+    cmd.run();
     return 0;
 }

@@ -105,19 +105,88 @@ public:
     operator std::string( void ) const;
     operator CustomVal&( void ) const;
 
-    // these overwrite any previous contents (including kind)
-    val& operator = ( const bool x );
-    val& operator = ( const int64_t x );
-    val& operator = ( const double x );
-    val& operator = ( std::string x );
-    val& operator = ( CustomVal * x );
-    val& operator = ( const val& other );
-
     // meaning depends on the underlying type:
-    val& operator << ( const val& x );                          // insert x into this val
-    val& operator >> ( val& x );                                // extract x from this val
-    // out >> v;                         // all output geos to v
-    // out >> v;                         // one int64_t goes to v
+    val  operator -  ( void ) const;
+    val  operator +  ( const val& other ) const;
+    val  operator +  ( const int64_t other ) const;
+    val  operator +  ( const double other ) const;
+    val  operator +  ( const char * other ) const;
+    val  operator +  ( const std::string other ) const;
+    val  operator +  ( const CustomVal& other ) const;
+    val  operator -  ( const val& other ) const;
+    val  operator -  ( const int64_t other ) const;
+    val  operator -  ( const double other ) const;
+    val  operator -  ( const char * other ) const;
+    val  operator -  ( const std::string other ) const;
+    val  operator -  ( const CustomVal& other ) const;
+    val  operator *  ( const val& other ) const;
+    val  operator *  ( const int64_t other ) const;
+    val  operator *  ( const double other ) const;
+    val  operator *  ( const char * other ) const;
+    val  operator *  ( const std::string other ) const;
+    val  operator *  ( const CustomVal& other ) const;
+    val  operator /  ( const val& other ) const;
+    val  operator /  ( const int64_t other ) const;
+    val  operator /  ( const double other ) const;
+    val  operator /  ( const char * other ) const;
+    val  operator /  ( const std::string other ) const;
+    val  operator /  ( const CustomVal& other ) const;
+    val  operator << ( const val& other ) const;
+    val  operator << ( const int64_t other ) const;
+    val  operator << ( const double other ) const;
+    val  operator << ( const char * other ) const;
+    val  operator << ( const std::string other ) const;
+    val  operator << ( const CustomVal& other ) const;
+    val  operator >> ( const val& other ) const;
+    val  operator >> ( const int64_t other ) const;
+    val  operator >> ( const double other ) const;
+    val  operator >> ( const char * other ) const;
+    val  operator >> ( const std::string other ) const;
+    val  operator >> ( const CustomVal& other ) const;
+
+    // these overwrite any previous contents (including kind)
+    val& operator   = ( const bool x );
+    val& operator   = ( const int64_t x );
+    val& operator   = ( const double x );
+    val& operator   = ( std::string x );
+    val& operator   = ( CustomVal * x );
+    val& operator   = ( const val& x );
+    val& operator  += ( const val& x )		{ *this = *this +  x; return *this; }
+    val& operator  += ( const int64_t x )	{ *this = *this +  x; return *this; }
+    val& operator  += ( const double x )	{ *this = *this +  x; return *this; }
+    val& operator  += ( const char * x )	{ *this = *this +  x; return *this; }
+    val& operator  += ( std::string x )		{ *this = *this +  x; return *this; }
+    val& operator  += ( const CustomVal& x )	{ *this = *this +  x; return *this; }
+    val& operator  -= ( const val& x )	        { *this = *this -  x; return *this; }
+    val& operator  -= ( const int64_t x )	{ *this = *this -  x; return *this; }
+    val& operator  -= ( const double x )	{ *this = *this -  x; return *this; }
+    val& operator  -= ( const char * x )	{ *this = *this -  x; return *this; }
+    val& operator  -= ( std::string x )		{ *this = *this -  x; return *this; }
+    val& operator  -= ( const CustomVal& x )	{ *this = *this -  x; return *this; }
+    val& operator  *= ( const val& x )	        { *this = *this *  x; return *this; }
+    val& operator  *= ( const int64_t x )	{ *this = *this *  x; return *this; }
+    val& operator  *= ( const double x )	{ *this = *this *  x; return *this; }
+    val& operator  *= ( const char * x )	{ *this = *this *  x; return *this; }
+    val& operator  *= ( std::string x )		{ *this = *this *  x; return *this; }
+    val& operator  *= ( const CustomVal& x )    { *this = *this *  x; return *this; }
+    val& operator  /= ( const val& x )	        { *this = *this /  x; return *this; }
+    val& operator  /= ( const int64_t x )	{ *this = *this /  x; return *this; }
+    val& operator  /= ( const double x )	{ *this = *this /  x; return *this; }
+    val& operator  /= ( const char * x )	{ *this = *this /  x; return *this; }
+    val& operator  /= ( std::string x )		{ *this = *this /  x; return *this; }
+    val& operator  /= ( const CustomVal& x )	{ *this = *this /  x; return *this; }
+    val& operator <<= ( const val& x )		{ *this = *this << x; return *this; }
+    val& operator <<= ( const int64_t x )	{ *this = *this << x; return *this; }
+    val& operator <<= ( const double x )	{ *this = *this << x; return *this; }
+    val& operator <<= ( const char * x )	{ *this = *this << x; return *this; }
+    val& operator <<= ( std::string x )		{ *this = *this << x; return *this; }
+    val& operator <<= ( const CustomVal& x )	{ *this = *this << x; return *this; }
+    val& operator >>= ( const val& x )		{ *this = *this >> x; return *this; }
+    val& operator >>= ( const int64_t x )	{ *this = *this >> x; return *this; }
+    val& operator >>= ( const double x )	{ *this = *this >> x; return *this; }
+    val& operator >>= ( const char * x )	{ *this = *this >> x; return *this; }
+    val& operator >>= ( std::string x )		{ *this = *this >> x; return *this; }
+    val& operator >>= ( const CustomVal& x )	{ *this = *this >> x; return *this; }
 
     // list-only operations
     val&       push( const val& x );
@@ -143,9 +212,10 @@ public:
     val  join( void );                                          // join thread or threads; returns status or list of statuses
 
     // processes
-    // val out = run("ls -l");           // outputs a list of lines
-    // val fd = exec("/bin/bash");       // returns list of 3 file() for stdin, stdout, stderr
-    // val fd = exec("/bin/bash", "2>1");// returns list of 2 file() for stdin, stdout+stderr
+    val  run( val options="" ) const;
+    // int status = run( "ls -l" );
+    // val out = cmd.run( "o+e" );       // return one file() for stdout+stderr
+    // val fd = cmd.run( "i,o,e" );      // returns list of 3 file() for stdin, stdout, sterr
     // cmd << "ls -l\n";                 // write string to stdin of sh
 
     // file-only
@@ -550,28 +620,51 @@ inline val& val::operator = ( const val& other )
     return *this;
 }
 
-inline val& val::operator << ( const val& x )
+inline val val::operator - ( void ) const
 {
-    switch( k ) 
-    {
-        case kind::STR:         u.s->s += std::string( x );                             break;
-        case kind::LIST:        push( x );                                              break;
-        case kind::CUSTOM:      *u.c << x;                                              break;
-        default:                die( "can't insert into " + kind_to_str(k) + " val" );  break;
-    }
     return *this;
 }
 
-inline val& val::operator >> ( val& x )
+inline val val::operator + ( const val& other ) const
+{
+    return *this;
+}
+
+inline val val::operator -  ( const val& other ) const
+{
+    return *this;
+}
+
+inline val val::operator *  ( const val& other ) const
+{
+    return *this;
+}
+
+inline val val::operator / ( const val& other ) const
+{
+    return *this;
+}
+
+inline val val::operator << ( const val& x ) const
 {
     switch( k ) 
     {
-        case kind::STR:         x = *this;                                              break;
-        case kind::LIST:        x = shift();                                            break;
-        case kind::CUSTOM:      *u.c >> x;                                              break;
-        default:                die( "can't insert into " + kind_to_str(k) + " val" );  break;
+        case kind::STR:         return int64_t(*this) << int64_t(x);
+        case kind::INT:         return int64_t(*this) << int64_t(x);
+//      case kind::CUSTOM:      return *u.c << x;                                     
+        default:                die( "can't left-shift " + kind_to_str(k) + " val" ); return val();
     }
-    return *this;
+}
+
+inline val val::operator >> ( const val& x ) const
+{
+    switch( k ) 
+    {
+        case kind::STR:         return int64_t(*this) >> int64_t(x);
+        case kind::INT:         return int64_t(*this) >> int64_t(x);
+//      case kind::CUSTOM:      return *u.c >> x;                                     
+        default:                die( "can't right-shift " + kind_to_str(k) + " val" ); return val();
+    }
 }
 
 inline val& val::push( const val& x )
