@@ -27,7 +27,7 @@
 //
 // #!cs
 //
-#include "cs.h"                 // this interpreter is also a C++ script (or will be soon)
+#include "cs.h"                 // this interpreter is also a C++ script
 
 using std::cout;
 
@@ -37,10 +37,11 @@ int main( int argc, const char * argv[] )
     val cs_dir = val::exe_path_dir();
     val exe_name = argv[1];
     val cpp_name = exe_name + ".cpp";
-    val CFLAGS  = "-std=c++17 -O3 -Werror -Wextra -Wstrict-aliasing -pedantic -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization";
-        CFLAGS += " -Wformat=2 -Winit-self -Wmissing-include-dirs  -Woverloaded-virtual -Wredundant-decls -Wsign-promo";
-        CFLAGS += " -Wstrict-overflow=5 -Wswitch-default -Wundef -g";
-        CFLAGS += val(" -I \"") + cs_dir + "\"";
+    val CFLAGS  = val( " -std=c++17 -O3 -Werror -Wextra -Wstrict-aliasing -pedantic" ) +
+                  " -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization" +
+                  " -Wformat=2 -Winit-self -Wmissing-include-dirs  -Woverloaded-virtual -Wredundant-decls -Wsign-promo" +
+                  " -Wstrict-overflow=5 -Wswitch-default -Wundef -g" +
+                  " -I \"" + cs_dir + "\"";
     val cmd = val("g++ ") + CFLAGS + " -o " + exe_name + " " + cpp_name;
     cout << cmd << "\n";
     cmd.run();
