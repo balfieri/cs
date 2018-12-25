@@ -57,6 +57,9 @@ private:
 //
 class Custom;
 
+//---------------------------------------------------------------------
+// This is the main dynamic value type
+//---------------------------------------------------------------------
 class val
 {
 public:
@@ -69,9 +72,21 @@ public:
     val( std::string x );
     val( const val& x );
     val( Custom * x );
+   
     static val list( void );
     static val list( int64_t cnt, const char * args[] );
+   
     static val map( void );
+
+    static val file( const val& name, const val& options );
+    static val file( const val& options );                      // creates temporary file or pipe
+
+    static val func( val (*f)( const val& args ) );
+    static val func( const val& code );
+
+    static val thread(  val (*f)( const val& args ), const val& args );
+    static val threads( const val& thr_cnt, val (*f)( const val& thr_index, const val& args ), const val& args );
+
     ~val();
 
     // introspection
@@ -101,19 +116,26 @@ public:
     val        shift( void );
     val        split( const val delim = "" ) const;
     val        join( const val delim = "" ) const;
-    val& operator , ( const val& b );                         // list concatenation
+    val& operator , ( const val& b );                           // list concatenation
 
     // map-only operations
 
     // list or map subscripting operator
-    bool       exists( const val& key ) const;                // returns true if key has a legal value in list/map
-    const val& get( const val& key ) const;                   // read list/map using key 
-    void       set( const val& key, const val& v );           // write list/map using key with v
-    ValProxy   operator[]( const val& key );                  // could be read or write
-    const val& operator[]( const val& key ) const;            // read only
+    bool       exists( const val& key ) const;                  // returns true if key has a legal value in list/map
+    const val& get( const val& key ) const;                     // read list/map using key 
+    void       set( const val& key, const val& v );             // write list/map using key with v
+    ValProxy   operator[]( const val& key );                    // could be read or write
+    const val& operator[]( const val& key ) const;              // read only
 
-    // function-only operators
-    val  operator () ( ... );                                 // function call
+    // function-only 
+    val  operator () ( ... );                                   // function call
+
+    // thread-only 
+    val  join( void );                                          // join thread or threads; returns one or list of statuses
+
+    // file-only
+    static val exe_path( void );                                // full path of this executable
+    static val exe_path_dir( void );                            // same, but just the directory 
 
 private:
     enum class kind
@@ -168,22 +190,36 @@ private:
     void free( void );
 };
 
-// Globals
-//
+//---------------------------------------------------------------------
+// Global Variables and Constants
+//---------------------------------------------------------------------
 static const val     undef;
 static std::istream& cin  = std::cin;
 static std::ostream& cout = std::cout;
 static std::ostream& cerr = std::cerr;
 
-// Misc Functions
+// val x = y.matches( “regexp” )
+// val out = run("ls -l");           // outputs a list of lines
+// val fd = exec("/bin/bash");       // returns list of 3 file() for stdin, stdout, stderr
+// val fd = exec("/bin/bash", "2>1");// returns list of 2 file() for stdin, stdout+stderr
+// cmd << "ls -l\n";                 // write string to stdin of sh
+// out >> v;                         // all output geos to v
+// out >> v;                         // one int64_t goes to v
 //
-static inline val list( void )                                      { return val::list(); }
-static inline val list( int64_t cnt, const char * args[] )          { return val::list( cnt, args ); }
-static inline val map( void )                                       { return val::map();  }
+// foreach(e, x) ...
 
-static val exe_path( void );
-static val exe_path_dir( void );
+//---------------------------------------------------------------------
+// Stream I/O
+//---------------------------------------------------------------------
+static inline   std::ostream& operator << ( std::ostream &out, const val& x )
+{
+    out << std::string(x); 
+    return out;
+}
 
+//---------------------------------------------------------------------
+// Assertions
+//---------------------------------------------------------------------
 static inline void die( std::string msg )       
 { 
     std::cout << "ERROR: " << msg << "\n"; 
@@ -192,14 +228,9 @@ static inline void die( std::string msg )
 
 #define csassert( expr, msg ) if ( !(expr) ) die( msg )
 
-static inline std::ostream& operator << ( std::ostream &out, const val& x )
-{
-    out << std::string(x); 
-    return out;
-}
-
-// Custom Val
-//
+//---------------------------------------------------------------------
+// Custom Val - allows you to extend val
+//---------------------------------------------------------------------
 class Custom
 {
 public:
@@ -239,32 +270,15 @@ private:
     }
 };
 
-// val x = func( f )
-// val x = func( "code" )
-// val x = file(“file”, “w”)
-// val x = file( "w" )
-// val x = y.matches( “regexp” )
-// val x = thread( f, arg )
-// x.join()
-// val x = threads( n, f, arg )
-// val out = run("ls -l");           // outputs a list of lines
-// val fd = exec("/bin/bash");       // returns list of 3 file() for stdin, stdout, stderr
-// val fd = exec("/bin/bash", "2>1");// returns list of 2 file() for stdin, stdout+stderr
-// val cmd = fd[0];                  // stdin of sh
-// val out = fd[1];                  // stdout+stderr of sh
-// cmd << "ls -l\n";                 // write string to stdin of sh
-// val v = list();
-// out >> v;                         // all output geos to v
-// val v = 0;                   
-// out >> v;                         // one int64_t goes to v
-//
-// foreach(e, x) ...
-
+//-----------------------------------------------------
+//-----------------------------------------------------
 //-----------------------------------------------------
 //-----------------------------------------------------
 // 
 // IMPLEMENTATION  IMPLEMENTATION  IMPLEMENTATION
 //
+//-----------------------------------------------------
+//-----------------------------------------------------
 //-----------------------------------------------------
 //-----------------------------------------------------
 
@@ -680,7 +694,7 @@ inline void  ValProxy::operator = ( const val& other )          { v->set( *key, 
 inline ValProxy   val::operator [] ( const val& key )           { return ValProxy( this, &key ); }
 inline const val& val::operator [] ( const val& key ) const     { return get( key );             }
 
-inline val exe_path( void )
+inline val val::exe_path( void )
 {
     pid_t pid = getpid();
     char path[PROC_PIDPATHINFO_MAXSIZE];
@@ -689,7 +703,7 @@ inline val exe_path( void )
     return val( path );
 }
 
-inline val exe_path_dir( void )
+inline val val::exe_path_dir( void )
 {
     std::string path = exe_path();
     size_t pos = path.find_last_of( "/\\" );

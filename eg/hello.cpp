@@ -2,7 +2,7 @@
 
 int main( int argc, const char * argv[] )
 {
-    val args = list( argc, argv );
+    val args = val::list( argc, argv );
     cout << "Command line args: " << args << "\n";
     return 0;
 }

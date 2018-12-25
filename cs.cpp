@@ -34,7 +34,7 @@ int main( int argc, const char * argv[] )
     //cout << argv[1] << "\n";
     //return 0;
     csassert( argc > 1, "current usage: cs <basename>" );
-    val cs_dir = exe_path_dir();
+    val cs_dir = val::exe_path_dir();
     std::string exe_name = argv[1];
     std::string cpp_name = exe_name + ".cpp";
     std::string CFLAGS  = "-std=c++17 -O3 -Werror -Wextra -Wstrict-aliasing -pedantic -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization";
