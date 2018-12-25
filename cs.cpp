@@ -31,8 +31,6 @@
 
 int main( int argc, const char * argv[] )
 {
-    //cout << argv[1] << "\n";
-    //return 0;
     csassert( argc > 1, "current usage: cs <basename>" );
     val cs_dir = val::exe_path_dir();
     std::string exe_name = argv[1];
@@ -42,7 +40,7 @@ int main( int argc, const char * argv[] )
                 CFLAGS += " -Wstrict-overflow=5 -Wswitch-default -Wundef -g";
                 CFLAGS += " -I \"" + std::string(cs_dir) + "\"";
     std::string cmd = "g++ " + CFLAGS + " -o " + exe_name + " " + cpp_name;
-    cout << cmd << "\n";
+    std::cout << cmd << "\n";
     std::system( cmd.c_str() );
     cmd = "./" + exe_name;
     std::system( cmd.c_str() );

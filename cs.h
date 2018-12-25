@@ -20,6 +20,10 @@
 //
 // cs.h - C++ Scripting
 //
+// The main theme here is to use dynamic typing in the form of the "val" class.
+// Everything is a val.  There are some built-in val types.  There's also 
+// a CustomVal type that can be used to add new val types.
+// 
 #ifndef __cs_h
 #define __cs_h
 
@@ -55,7 +59,7 @@ private:
 
 // dynamically-typed value
 //
-class Custom;
+class CustomVal;
 
 //---------------------------------------------------------------------
 // This is the main dynamic value type
@@ -71,14 +75,15 @@ public:
     val( const char * x );
     val( std::string x );
     val( const val& x );
-    val( Custom * x );
+    val( CustomVal * x );
    
     static val list( void );
     static val list( int64_t cnt, const char * args[] );
    
     static val map( void );
+    static val map( val& key_val_list );                        // flattened list of: key0, val0, key1, val1, ...
 
-    static val file( const val& name, const val& options );
+    static val file( const val& name, const val& options );     // creates or opens named file or pipe; option characters: rwcp
     static val file( const val& options );                      // creates temporary file or pipe
 
     static val func( val (*f)( const val& args ) );
@@ -98,18 +103,21 @@ public:
     operator int64_t( void ) const;
     operator double( void ) const;
     operator std::string( void ) const;
-    operator Custom&( void ) const;
+    operator CustomVal&( void ) const;
 
     // these overwrite any previous contents (including kind)
     val& operator = ( const bool x );
     val& operator = ( const int64_t x );
     val& operator = ( const double x );
     val& operator = ( std::string x );
-    val& operator = ( Custom * x );
+    val& operator = ( CustomVal * x );
     val& operator = ( const val& other );
 
+    // meaning depends on the underlying type:
     val& operator << ( const val& x );                          // insert x into this val
     val& operator >> ( val& x );                                // extract x from this val
+    // out >> v;                         // all output geos to v
+    // out >> v;                         // one int64_t goes to v
 
     // list-only operations
     val&       push( const val& x );
@@ -126,16 +134,26 @@ public:
     void       set( const val& key, const val& v );             // write list/map using key with v
     ValProxy   operator[]( const val& key );                    // could be read or write
     const val& operator[]( const val& key ) const;              // read only
+    // foreach(e, x) ...
 
     // function-only 
-    val  operator () ( ... );                                   // function call
+    val  operator () ( ... );                                   // call function with variable list of arguments
 
     // thread-only 
-    val  join( void );                                          // join thread or threads; returns one or list of statuses
+    val  join( void );                                          // join thread or threads; returns status or list of statuses
+
+    // processes
+    // val out = run("ls -l");           // outputs a list of lines
+    // val fd = exec("/bin/bash");       // returns list of 3 file() for stdin, stdout, stderr
+    // val fd = exec("/bin/bash", "2>1");// returns list of 2 file() for stdin, stdout+stderr
+    // cmd << "ls -l\n";                 // write string to stdin of sh
 
     // file-only
     static val exe_path( void );                                // full path of this executable
     static val exe_path_dir( void );                            // same, but just the directory 
+
+    // regular expressions
+    // val x = y.matches( “regexp” )
 
 private:
     enum class kind
@@ -184,29 +202,16 @@ private:
         String *                s;
         List *                  l;
         Map *                   m;
-        Custom *                c;
+        CustomVal *             c;
     } u;
 
     void free( void );
 };
 
 //---------------------------------------------------------------------
-// Global Variables and Constants
+// Constants
 //---------------------------------------------------------------------
-static const val     undef;
-static std::istream& cin  = std::cin;
-static std::ostream& cout = std::cout;
-static std::ostream& cerr = std::cerr;
-
-// val x = y.matches( “regexp” )
-// val out = run("ls -l");           // outputs a list of lines
-// val fd = exec("/bin/bash");       // returns list of 3 file() for stdin, stdout, stderr
-// val fd = exec("/bin/bash", "2>1");// returns list of 2 file() for stdin, stdout+stderr
-// cmd << "ls -l\n";                 // write string to stdin of sh
-// out >> v;                         // all output geos to v
-// out >> v;                         // one int64_t goes to v
-//
-// foreach(e, x) ...
+static const val undef;
 
 //---------------------------------------------------------------------
 // Stream I/O
@@ -229,27 +234,27 @@ static inline void die( std::string msg )
 #define csassert( expr, msg ) if ( !(expr) ) die( msg )
 
 //---------------------------------------------------------------------
-// Custom Val - allows you to extend val
+// CustomVal Val - allows you to extend val
 //---------------------------------------------------------------------
-class Custom
+class CustomVal
 {
 public:
-    Custom( void )                              { ref_cnt = 1; }
-    virtual ~Custom()                           { csassert( ref_cnt == 0, "trying to destroy a Custom val when ref_cnt is not 0" ); }
+    CustomVal( void )                           { ref_cnt = 1; }
+    virtual ~CustomVal()                        { csassert( ref_cnt == 0, "trying to destroy a CustomVal val when ref_cnt is not 0" ); }
 
-    virtual std::string kind( void ) const      { return "Custom"; }
-    virtual operator bool( void ) const         { die( "no conversion available from Custom to bool" );        return false; }
-    virtual operator int64_t( void ) const      { die( "no conversion available from Custom to int64_t" );     return 0;     }
-    virtual operator double( void ) const       { die( "no conversion available from Custom to double" );      return 0.0;   }
-    virtual operator std::string( void ) const  { die( "no conversion available from Custom to std::string" ); return "";    }
+    virtual std::string kind( void ) const      { return "CustomVal"; }
+    virtual operator bool( void ) const         { die( "no conversion available from CustomVal to bool" );        return false; }
+    virtual operator int64_t( void ) const      { die( "no conversion available from CustomVal to int64_t" );     return 0;     }
+    virtual operator double( void ) const       { die( "no conversion available from CustomVal to double" );      return 0.0;   }
+    virtual operator std::string( void ) const  { die( "no conversion available from CustomVal to std::string" ); return "";    }
 
-    virtual Custom& operator =  ( const val& x ) { die( "no override available for assigning to Custom" );     (void)x; return *this; } 
-    virtual Custom& operator << ( const val& x ) { die( "no override available for inserting into a Custom" ); (void)x; return *this; }
-    virtual Custom& operator >> ( val& x )       { die( "no override available for extracing from a Custom" ); (void)x; return *this; }
+    virtual CustomVal& operator =  ( const val& x ) { die( "no override available for assigning to CustomVal" );     (void)x; return *this; } 
+    virtual CustomVal& operator << ( const val& x ) { die( "no override available for inserting into a CustomVal" ); (void)x; return *this; }
+    virtual CustomVal& operator >> ( val& x )       { die( "no override available for extracing from a CustomVal" ); (void)x; return *this; }
 
-    virtual bool       exists( const val& key ) const      { die( "no override available for exists() of Custom" ); (void)key; return false; }
-    virtual const val& get( const val& key ) const         { die( "no override available for get() of Custom" ); (void)key; return undef; }
-    virtual void       set( const val& key, const val& x ) { die( "no override available for set() of Custom" ); (void)key; (void)x;  }
+    virtual bool       exists( const val& key ) const      { die( "no override available for exists() of CustomVal" ); (void)key; return false; }
+    virtual const val& get( const val& key ) const         { die( "no override available for get() of CustomVal" ); (void)key; return undef; }
+    virtual void       set( const val& key, const val& x ) { die( "no override available for set() of CustomVal" ); (void)key; (void)x;  }
 
 private:
     uint64_t ref_cnt;
@@ -258,13 +263,13 @@ private:
 
     inline void inc_ref_cnt( void )            
     { 
-        csassert( ref_cnt != 0, "shouldn't be incrementing a zero ref_cnt for a Custom val" ); 
+        csassert( ref_cnt != 0, "shouldn't be incrementing a zero ref_cnt for a CustomVal val" ); 
         ref_cnt++;
     }
 
     inline uint64_t dec_ref_cnt( void )            
     { 
-        csassert( ref_cnt != 0, "trying to decfrement a zero ref_cnt for a Custom val" );
+        csassert( ref_cnt != 0, "trying to decfrement a zero ref_cnt for a CustomVal val" );
         ref_cnt--;
         return ref_cnt;
     }
@@ -342,7 +347,7 @@ inline val::val( std::string x )
     u.s->s = x;
 }
 
-inline val::val( Custom * x )
+inline val::val( CustomVal * x )
 {
     x->inc_ref_cnt();
     k = kind::CUSTOM;
@@ -482,9 +487,9 @@ inline val::operator std::string( void ) const
     }
 }
 
-inline val::operator Custom&( void ) const
+inline val::operator CustomVal&( void ) const
 {
-    csassert( k == kind::CUSTOM, "can't convert " + kind_to_str(k) + " to Custom *" );
+    csassert( k == kind::CUSTOM, "can't convert " + kind_to_str(k) + " to CustomVal *" );
     return *u.c;
 }
 
@@ -520,7 +525,7 @@ inline val& val::operator = ( std::string x )
     return *this;
 }
 
-inline val& val::operator = ( Custom * x )
+inline val& val::operator = ( CustomVal * x )
 {
     free();
     x->inc_ref_cnt();
@@ -627,6 +632,12 @@ inline bool val::exists( const val& key ) const
     }
 }
 
+inline       ValProxy::operator const val&( void ) const        { return v->get( *key );   }
+inline void  ValProxy::operator = ( const val& other )          { v->set( *key, other );   }
+
+inline ValProxy   val::operator [] ( const val& key )           { return ValProxy( this, &key ); }
+inline const val& val::operator [] ( const val& key ) const     { return get( key );             }
+
 inline const val& val::get( const val& key ) const
 {
     switch( k ) 
@@ -687,12 +698,6 @@ inline void val::set( const val& key, const val& v )
         }
     }
 }
-
-inline       ValProxy::operator const val&( void ) const        { return v->get( *key );   }
-inline void  ValProxy::operator = ( const val& other )          { v->set( *key, other );   }
-
-inline ValProxy   val::operator [] ( const val& key )           { return ValProxy( this, &key ); }
-inline const val& val::operator [] ( const val& key ) const     { return get( key );             }
 
 inline val val::exe_path( void )
 {
