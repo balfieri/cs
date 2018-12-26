@@ -204,7 +204,9 @@ public:
                                                                 //          "i,o,e"             - run async; return list of 3 file() for separate stdin, stdout and stderr
 
     // paths
-    val         path_parent_dir( void );                        // parent directory of path
+    val         path_dir( void );                        // parent directory of path
+    val         path_no_dir( void );                            // path without the parent directory
+    val         path_no_ext( void );                            // path without the file extension
     int         path_stat( struct stat& stat );                 // do stat() system call on path
     bool        path_exists( void );                            // returns true if path exists and caller can stat it
     bool        path_is_file( void );                           // returns true if path is a plain file
@@ -1340,11 +1342,26 @@ val val::run( val options ) const
     return std::system( cmd.c_str() );
 }
 
-inline val val::path_parent_dir( void )
+inline val val::path_dir( void )
 {
-    csassert( k == kind::STR, "path_stat() must be called on a STR val" );
+    csassert( k == kind::STR, "path_dir() must be called on a STR val" );
     size_t pos = u.s->s.find_last_of( "/\\" );
     return val( u.s->s.substr( 0, pos ) );
+}
+
+inline val val::path_no_dir( void )
+{
+    csassert( k == kind::STR, "path_no_dir() must be called on a STR val" );
+    size_t pos = u.s->s.find_last_of( "/\\" );
+    return val( u.s->s.substr( pos+1 ) );
+}
+
+inline val val::path_no_ext( void )
+{
+    csassert( k == kind::STR, "path_no_dir() must be called on a STR val" );
+    size_t pos = u.s->s.find_last_of( "/\\." );
+    char c = u.s->s.at( pos );
+    return (c == '.') ? val( u.s->s.substr( 0, pos-1 ) ) : *this;
 }
 
 int val::path_stat( struct stat& ss )

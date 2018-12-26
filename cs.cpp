@@ -34,7 +34,7 @@ using std::cout;
 int main( int argc, const char * argv[] )
 {
     csassert( argc > 1, "current usage: cs <basename>" );
-    val cs_dir   = val::exe_path().path_parent_dir();
+    val cs_dir   = val::exe_path().path_dir();
     val exe_name = argv[1];
     val cpp_name = exe_name + ".cpp";
     csassert( cpp_name.path_exists(), val("cpp file ") + cpp_name + " does not exist" );
