@@ -9,4 +9,10 @@ my $CFLAGS = "-std=gnu++0x -Wextra -Wstrict-aliasing -pedantic -Werror -Wcast-al
 `uname` !~ /Darwin/ and $CFLAGS .= " -Wlogical-op -Wstrict-null-sentinel";
 `uname` =~ /Darwin/ and $CFLAGS .= " -Wno-unused-parameter -Wno-shift-negative-value -Wno-c++14-binary-literal -ferror-limit=10 -DNO_FMT_LLU";
 
+print "Compiling cs...\n";
 system( "g++ -g -o ${prog} ${CFLAGS} ${prog}.cpp" ) == 0 or die "ERROR: compile failed\n";
+print "Success\n";
+print "For fun, now compile cs using cs...\n";
+print "cs cs\n";
+system( "cs cs" );
+print "Success\n";

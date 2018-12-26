@@ -33,7 +33,7 @@ using std::cout;
 
 int main( int argc, const char * argv[] )
 {
-    csassert( argc > 1, "current usage: cs <basename>" );
+    csassert( argc > 1, "usage: cs <basename>" );
     val cs_dir   = val::exe_path().path_dir();
     val exe_name = argv[1];
     val cpp_name = exe_name + ".cpp";
@@ -45,7 +45,9 @@ int main( int argc, const char * argv[] )
                    " -I \"" + cs_dir + "\"";
     val cmd = val("g++ ") + CFLAGS + " -o " + exe_name + " " + cpp_name;
     if ( cmd.run() != 0 ) die( "build failed" );
-    cmd = val("./") + exe_name;
-    if ( cmd.run() != 0 ) die( "run failed" );
+    if ( exe_name != "cs" ) {
+        cmd = val("./") + exe_name;
+        if ( cmd.run() != 0 ) die( "run failed" );
+    }
     return 0;
 }

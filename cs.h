@@ -204,7 +204,7 @@ public:
                                                                 //          "i,o,e"             - run async; return list of 3 file() for separate stdin, stdout and stderr
 
     // paths
-    val         path_dir( void );                        // parent directory of path
+    val         path_dir( void );                               // parent directory of path
     val         path_no_dir( void );                            // path without the parent directory
     val         path_no_ext( void );                            // path without the file extension
     int         path_stat( struct stat& stat );                 // do stat() system call on path
@@ -221,6 +221,7 @@ public:
     // regular expressions
     // val x = y.matches( “regexp” )
 
+    // list/map iterator
     class iterator: public std::iterator< std::input_iterator_tag,   // iterator_category
                                           val,                       // value_type
                                           int64_t,                   // difference_type
