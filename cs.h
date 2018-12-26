@@ -72,6 +72,8 @@ public:
     val( void );
     val( bool x );
     val( int64_t x );
+    val( int x );
+    val( float x );
     val( double x );
     val( const char * x );
     val( std::string x );
@@ -434,7 +436,9 @@ public:
     virtual CustomVal  operator /  ( const val& x ) const       { die( "no override available for CustomVal operator /" );      (void)x; return *this; } 
     virtual CustomVal  operator %  ( const val& x ) const       { die( "no override available for CustomVal operator %" );      (void)x; return *this; } 
     virtual CustomVal  operator &  ( const val& x ) const       { die( "no override available for CustomVal operator &" );      (void)x; return *this; } 
+    virtual bool       operator && ( const val& x ) const       { die( "no override available for CustomVal operator &&" );     (void)x; return *this; } 
     virtual CustomVal  operator |  ( const val& x ) const       { die( "no override available for CustomVal operator |" );      (void)x; return *this; } 
+    virtual bool       operator || ( const val& x ) const       { die( "no override available for CustomVal operator ||" );     (void)x; return *this; } 
     virtual CustomVal  operator ^  ( const val& x ) const       { die( "no override available for CustomVal operator ^" );      (void)x; return *this; } 
     virtual CustomVal  operator << ( const val& x ) const       { die( "no override available for CustomVal operator <<" );     (void)x; return *this; }
     virtual CustomVal  operator >> ( const val& x ) const       { die( "no override available for CustomVal operator >>" );     (void)x; return *this; }
@@ -529,7 +533,19 @@ inline val::val( int64_t x )
     u.i = x;
 }
 
+inline val::val( int x )
+{
+    k = kind::INT;
+    u.i = x;
+}
+
 inline val::val( double x )
+{
+    k = kind::FLT;
+    u.f = x;
+}
+
+inline val::val( float x )
 {
     k = kind::FLT;
     u.f = x;
@@ -699,20 +715,27 @@ inline val::operator CustomVal&( void ) const
 
 inline val val::operator - ( void ) const
 {
-    die( "- not implemented" );
-    return *this;
-}
-
-inline val val::operator ~ ( void ) const
-{
-    die( "~ not implemented" );
-    return *this;
+    switch( k )
+    {
+        case kind::BOOL:                
+        case kind::INT:                 return val( -int64_t() );
+        case kind::CUSTOM:              return val( new CustomVal( -*u.c ) );
+        default:                        return val( -double() );
+    }
 }
 
 inline bool val::operator ! ( void ) const
 {
-    die( "! not implemented" );
-    return *this;
+    return !bool();
+}
+
+inline val val::operator ~ ( void ) const
+{
+    switch( k )
+    {
+        case kind::CUSTOM:              return val( new CustomVal( ~*u.c ) );
+        default:                        return val( ~int64_t() );
+    }
 }
 
 inline val val::operator + ( const val& x ) const
@@ -1116,8 +1139,8 @@ inline val val::exe_path_dir( void )
 
 val val::run( val options ) const
 {
-    die( "run not implemented" );
-    return val();
+    csassert( options == "", "run() supports no options yet" );
+    return std::system( std::string().c_str() );
 }
 
 #endif // __cs_h
