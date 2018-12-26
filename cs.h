@@ -247,7 +247,7 @@ public:
 
     iterator begin( void )                                              { return iterator( this, 0 );                        }
     iterator end( void )                                                { return iterator( this, size()-1 );                 }
-    // foreach(e, x) ...
+    #define foreach( it, x ) for( auto it = x.begin(); it != x.end(); it++ )
 
 private:
     enum class kind
