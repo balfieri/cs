@@ -1,6 +1,6 @@
 <p>
-C++ might be the only language we need to learn.  
-CScript (CS) allows us to use C++ as both a statically-typed compiled language
+C++ might be the only language one needs to learn.  
+CScript (CS) allows you to use C++ as both a statically-typed compiled language
 and as a dynamically-typed scripting language. 
 </p>
 
