@@ -41,7 +41,10 @@
 #include <errno.h>
 #include <unistd.h>
 #include <libproc.h>
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+ 
 // Proxy used by the [] operator to distinguish get() vs. set()
 //
 class val;
@@ -304,9 +307,18 @@ public:
     // val fd = cmd.run( "i,o,e" );      // returns list of 3 file() for stdin, stdout, sterr
     // cmd << "ls -l\n";                 // write string to stdin of sh
 
-    // file-only
-    static val exe_path( void );                                // full path of this executable
-    static val exe_path_dir( void );                            // same, but just the directory 
+    // paths
+    static val  exe_path( void );                               // full path of this executable
+    static val  exe_path_dir( void );                           // same, but just the directory 
+    int         path_stat( struct stat& stat );                 // do stat() system call on path
+    bool        path_exists( void );                            // returns true if path exists and caller can stat it
+    bool        path_is_file( void );                           // returns true if path is a plain file
+    bool        path_is_link( void );                           // returns true if path is a symbolic link
+    bool        path_is_fifo( void );                           // returns true if path is a pipe or FIFO
+    bool        path_is_socket( void );                         // returns true if path is a socket
+    bool        path_is_dir( void );                            // returns true if path is a directory
+    time_t      path_time_modified( void );                     // returns time last modified (seconds since 1970)
+    time_t      path_time_accessed( void );                     // returns time last accessed (seconds since 1970)
 
     // regular expressions
     // val x = y.matches( “regexp” )
@@ -1414,6 +1426,13 @@ inline void val::set( const val& key, const val& v )
     }
 }
 
+val val::run( val options ) const
+{
+    csassert( options == "", "run() supports no options yet" );
+    std::string cmd = *this;
+    return std::system( cmd.c_str() );
+}
+
 inline val val::exe_path( void )
 {
     pid_t pid = getpid();
@@ -1431,11 +1450,62 @@ inline val val::exe_path_dir( void )
     return val( path );
 }
 
-val val::run( val options ) const
+int val::path_stat( struct stat& ss )
 {
-    csassert( options == "", "run() supports no options yet" );
-    std::string cmd = *this;
-    return std::system( cmd.c_str() );
+    csassert( k == kind::STR, "path_stat() must be called on a STR val" );
+    return stat( std::string( *this ).c_str(), &ss );
+}
+
+bool val::path_exists( void )
+{
+    struct stat ss;
+    return path_stat( ss ) == 0;
+}
+
+bool val::path_is_file( void )
+{
+    struct stat ss;
+    return path_stat( ss ) == 0 && S_ISREG( ss.st_mode );
+}
+
+bool val::path_is_link( void )
+{
+    struct stat ss;
+    return path_stat( ss ) == 0 && S_ISLNK( ss.st_mode );
+}
+
+bool val::path_is_fifo( void )
+{
+    struct stat ss;
+    return path_stat( ss ) == 0 && S_ISFIFO( ss.st_mode );
+}
+
+bool val::path_is_socket( void )
+{
+    struct stat ss;
+    return path_stat( ss ) == 0 && S_ISSOCK( ss.st_mode );
+}
+
+bool val::path_is_dir( void )
+{
+    struct stat ss;
+    return path_stat( ss ) == 0 && S_ISDIR( ss.st_mode );
+}
+
+time_t val::path_time_modified( void )
+{
+    struct stat ss;
+    int r = path_stat( ss );
+    csassert( r == 0, "can't ss " + std::string( *this ) );
+    return ss.st_mtime;
+}
+
+time_t val::path_time_accessed( void )
+{
+    struct stat ss;
+    int r = path_stat( ss );
+    csassert( r == 0, "can't ss " + std::string( *this ) );
+    return ss.st_atime;
 }
 
 #endif // __cs_h
