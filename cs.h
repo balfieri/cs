@@ -425,7 +425,6 @@ public:
     virtual operator double( void ) const                       { die( "no override available for CustomVal operator double" );          return 0.0;   }
     virtual operator std::string( void ) const                  { die( "no override available for CustomVal operator std::string" );     return "";    }
 
-    virtual CustomVal& operator =  ( const val& x )             { die( "no override available for CustomVal operator =" );      (void)x; return *this; } 
     virtual CustomVal  operator -  ( void ) const               { die( "no override available for CustomVal operator -" );               return *this; } 
     virtual CustomVal  operator ~  ( void ) const               { die( "no override available for CustomVal operator ~" );               return *this; } 
     virtual bool       operator !  ( void ) const               { die( "no override available for CustomVal operator !" );               return false; }
@@ -445,6 +444,16 @@ public:
     virtual bool       operator >= ( const val& x ) const       { die( "no override available for CustomVal operator >=" );     (void)x; return false; }
     virtual bool       operator != ( const val& x ) const       { die( "no override available for CustomVal operator !=" );     (void)x; return false; }
     virtual bool       operator == ( const val& x ) const       { die( "no override available for CustomVal operator ==" );     (void)x; return false; }
+
+    virtual CustomVal& operator =  ( const val& x )             { die( "no override available for CustomVal operator =" );      (void)x; return *this; } 
+    virtual CustomVal& operator += ( const val& x )             { die( "no override available for CustomVal operator +=" );     (void)x; return *this; } 
+    virtual CustomVal& operator -= ( const val& x )             { die( "no override available for CustomVal operator -=" );     (void)x; return *this; } 
+    virtual CustomVal& operator *= ( const val& x )             { die( "no override available for CustomVal operator *=" );     (void)x; return *this; } 
+    virtual CustomVal& operator /= ( const val& x )             { die( "no override available for CustomVal operator /=" );     (void)x; return *this; } 
+    virtual CustomVal& operator %= ( const val& x )             { die( "no override available for CustomVal operator %=" );     (void)x; return *this; } 
+    virtual CustomVal& operator &= ( const val& x )             { die( "no override available for CustomVal operator &=" );     (void)x; return *this; } 
+    virtual CustomVal& operator |= ( const val& x )             { die( "no override available for CustomVal operator |=" );     (void)x; return *this; } 
+    virtual CustomVal& operator ^= ( const val& x )             { die( "no override available for CustomVal operator ^=" );     (void)x; return *this; } 
 
     virtual uint64_t   size( void ) const                       { die( "no override available for CustomVal size()" );                   return 0; }
     virtual bool       exists( const val& k ) const             { die( "no override available for CustomVal exists()" );        (void)k; return false; }
@@ -834,6 +843,20 @@ inline val& val::operator = ( const val& x )
         case kind::MAP:         u.m->ref_cnt++; break;
         case kind::CUSTOM:      *u.c = x;       break;
         default:                                break;
+    }
+    return *this;
+}
+
+inline val& val::operator += ( const val& x )
+{
+    switch( k ) 
+    {
+        case kind::INT:         u.i    += int64_t( x );     break;
+        case kind::FLT:         u.f    += double( x );      break;
+        case kind::STR:         u.s->s += std::string( x ); break;
+        case kind::LIST:        push( x );                  break;
+        case kind::CUSTOM:      *u.c += x;                  break;
+        default:                die( "+= not defined for " + kind_to_str( k ) ); break;
     }
     return *this;
 }
