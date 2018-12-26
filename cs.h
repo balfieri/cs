@@ -204,8 +204,7 @@ public:
                                                                 //          "i,o,e"             - run async; return list of 3 file() for separate stdin, stdout and stderr
 
     // paths
-    static val  exe_path( void );                               // full path of this executable
-    static val  exe_path_dir( void );                           // same, but just the directory 
+    val         path_parent_dir( void );                        // parent directory of path
     int         path_stat( struct stat& stat );                 // do stat() system call on path
     bool        path_exists( void );                            // returns true if path exists and caller can stat it
     bool        path_is_file( void );                           // returns true if path is a plain file
@@ -215,6 +214,7 @@ public:
     bool        path_is_dir( void );                            // returns true if path is a directory
     time_t      path_time_modified( void );                     // returns time last modified (seconds since 1970)
     time_t      path_time_accessed( void );                     // returns time last accessed (seconds since 1970)
+    static val  exe_path( void );                               // full path of current executable
 
     // regular expressions
     // val x = y.matches( “regexp” )
@@ -1340,21 +1340,11 @@ val val::run( val options ) const
     return std::system( cmd.c_str() );
 }
 
-inline val val::exe_path( void )
+inline val val::path_parent_dir( void )
 {
-    pid_t pid = getpid();
-    char path[PROC_PIDPATHINFO_MAXSIZE];
-    int ret = proc_pidpath( pid, path, sizeof(path) );
-    csassert( ret > 0, "proc_pidpath() had an error" );
-    return val( path );
-}
-
-inline val val::exe_path_dir( void )
-{
-    std::string path = exe_path();
-    size_t pos = path.find_last_of( "/\\" );
-    return val( path.substr( 0, pos ) );
-    return val( path );
+    csassert( k == kind::STR, "path_stat() must be called on a STR val" );
+    size_t pos = u.s->s.find_last_of( "/\\" );
+    return val( u.s->s.substr( 0, pos ) );
 }
 
 int val::path_stat( struct stat& ss )
@@ -1413,6 +1403,15 @@ time_t val::path_time_accessed( void )
     int r = path_stat( ss );
     csassert( r == 0, "can't ss " + std::string( *this ) );
     return ss.st_atime;
+}
+
+inline val val::exe_path( void )
+{
+    pid_t pid = getpid();
+    char path[PROC_PIDPATHINFO_MAXSIZE];
+    int ret = proc_pidpath( pid, path, sizeof(path) );
+    csassert( ret > 0, "proc_pidpath() had an error" );
+    return val( path );
 }
 
 #endif // __cs_h
