@@ -43,9 +43,8 @@ int main( int argc, const char * argv[] )
                    " -Wstrict-overflow=5 -Wswitch-default -Wundef -g" +
                    " -I \"" + cs_dir + "\"";
     val cmd = val("g++ ") + CFLAGS + " -o " + exe_name + " " + cpp_name;
-    cout << cmd << "\n";
-    cmd.run();
+    if ( cmd.run() != val(0) ) die( "build failed" );
     cmd = val("./") + exe_name;
-    cmd.run();
+    if ( cmd.run() != val(0) ) die( "run failed" );
     return 0;
 }

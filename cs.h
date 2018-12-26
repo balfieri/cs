@@ -718,15 +718,15 @@ inline val val::operator - ( void ) const
     switch( k )
     {
         case kind::BOOL:                
-        case kind::INT:                 return -int64_t();
+        case kind::INT:                 return -int64_t( *this );
         case kind::CUSTOM:              return new CustomVal( -*u.c );
-        default:                        return -double();
+        default:                        return -double( *this );
     }
 }
 
 inline bool val::operator ! ( void ) const
 {
-    return !bool();
+    return !bool( *this );
 }
 
 inline val val::operator ~ ( void ) const
@@ -734,7 +734,7 @@ inline val val::operator ~ ( void ) const
     switch( k )
     {
         case kind::CUSTOM:              return new CustomVal( ~*u.c );
-        default:                        return ~int64_t();
+        default:                        return ~int64_t( *this );
     }
 }
 
@@ -756,9 +756,9 @@ inline val val::operator + ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() + double( x );
+            return double( *this ) + double( x );
         } else if ( k == kind::STR ) {
-            return std::string() + std::string( x );
+            return std::string( *this ) + std::string( x );
         } else if ( k == kind::LIST ) {
             val v = *this;
             v.push( x );
@@ -786,7 +786,7 @@ inline val val::operator - ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() - double( x );
+            return double( *this ) - double( x );
         } else {
             die( kind_to_str( k ) + " - " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -810,7 +810,7 @@ inline val val::operator * ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() * double( x );
+            return double( *this ) * double( x );
         } else {
             die( kind_to_str( k ) + " * " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -832,7 +832,7 @@ inline val val::operator / ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() / double( x );
+            return double( *this ) / double( x );
         } else {
             die( kind_to_str( k ) + " / " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -854,7 +854,7 @@ inline val val::operator % ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return std::remainder( double(), double( x ) );
+            return std::remainder( double( *this ), double( x ) );
         } else {
             die( kind_to_str( k ) + " % " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -878,7 +878,7 @@ inline val val::operator & ( const val& x ) const
     } else {
         if ( (k == kind::INT  && x.k == kind::BOOL) ||
              (k == kind::BOOL && x.k == kind::INT) ) {
-            return int64_t() & int64_t( x );
+            return int64_t( *this ) & int64_t( x );
         } else {
             die( kind_to_str( k ) + " & " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -888,7 +888,7 @@ inline val val::operator & ( const val& x ) const
 
 inline bool val::operator && ( const val& x ) const
 {
-    return bool() && bool( x );
+    return bool( *this ) && bool( x );
 }
 
 inline val val::operator | ( const val& x ) const
@@ -907,7 +907,7 @@ inline val val::operator | ( const val& x ) const
     } else {
         if ( (k == kind::INT  || x.k == kind::BOOL) ||
              (k == kind::BOOL || x.k == kind::INT) ) {
-            return int64_t() | int64_t( x );
+            return int64_t( *this ) | int64_t( x );
         } else {
             die( kind_to_str( k ) + " | " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -917,7 +917,7 @@ inline val val::operator | ( const val& x ) const
 
 inline bool val::operator || ( const val& x ) const
 {
-    return bool() || bool( x );
+    return bool( *this ) || bool( x );
 }
 
 inline val val::operator ^ ( const val& x ) const
@@ -936,7 +936,7 @@ inline val val::operator ^ ( const val& x ) const
     } else {
         if ( (k == kind::INT  || x.k == kind::BOOL) ||
              (k == kind::BOOL || x.k == kind::INT) ) {
-            return int64_t() ^ int64_t( x );
+            return int64_t( *this ) ^ int64_t( x );
         } else {
             die( kind_to_str( k ) + " ^ " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -960,9 +960,9 @@ inline val val::operator << ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() * std::pow( 2.0, double( x ) );
+            return double( *this ) * std::pow( 2.0, double( x ) );
         } else if ( k == kind::STR ) {
-            return std::string() + std::string( x );
+            return std::string( *this ) + std::string( x );
         } else if ( k == kind::LIST ) {
             val v = *this;
             v.push( x );
@@ -988,7 +988,7 @@ inline val val::operator >> ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() / std::pow( 2.0, double( x ) );
+            return double( *this ) / std::pow( 2.0, double( x ) );
         } else {
             die( kind_to_str( k ) + " >> " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -1013,7 +1013,7 @@ inline bool val::operator < ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() < double( x );
+            return double( *this ) < double( x );
         } else {
             die( kind_to_str( k ) + " < " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -1038,7 +1038,7 @@ inline bool val::operator <= ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() <= double( x );
+            return double( *this ) <= double( x );
         } else {
             die( kind_to_str( k ) + " <= " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -1063,7 +1063,7 @@ inline bool val::operator > ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() > double( x );
+            return double( *this ) > double( x );
         } else {
             die( kind_to_str( k ) + " > " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -1088,7 +1088,7 @@ inline bool val::operator >= ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() >= double( x );
+            return double( *this ) >= double( x );
         } else {
             die( kind_to_str( k ) + " >= " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -1114,7 +1114,7 @@ inline bool val::operator != ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() != double( x );
+            return double( *this ) != double( x );
         } else {
             die( kind_to_str( k ) + " != " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -1140,7 +1140,7 @@ inline bool val::operator == ( const val& x ) const
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
-            return double() == double( x );
+            return double( *this ) == double( x );
         } else {
             die( kind_to_str( k ) + " == " + kind_to_str( x.k ) + " is not supported" );
             return val();
@@ -1434,7 +1434,8 @@ inline val val::exe_path_dir( void )
 val val::run( val options ) const
 {
     csassert( options == "", "run() supports no options yet" );
-    return std::system( std::string().c_str() );
+    std::string cmd = *this;
+    return std::system( cmd.c_str() );
 }
 
 #endif // __cs_h
