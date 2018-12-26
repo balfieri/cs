@@ -108,6 +108,8 @@ public:
 
     // meaning depends on the underlying type:
     val  operator -  ( void ) const;
+    val  operator ~  ( void ) const;
+    val  operator !  ( void ) const;
     val  operator +  ( const val& x ) const;
     val  operator +  ( const int64_t x ) const			{ return *this +  val( x ); }
     val  operator +  ( const double x ) const			{ return *this +  val( x ); }
@@ -150,6 +152,72 @@ public:
     val  operator >> ( const char * x ) const			{ return *this >> val( x ); }
     val  operator >> ( const std::string x ) const		{ return *this >> val( x ); }
     val  operator >> ( const CustomVal& x ) const;
+    val  operator &  ( const val& x ) const;
+    val  operator &  ( const int64_t x ) const			{ return *this &  val( x ); }
+    val  operator &  ( const double x ) const			{ return *this &  val( x ); }
+    val  operator &  ( const char * x ) const			{ return *this &  val( x ); }
+    val  operator &  ( const std::string x ) const		{ return *this &  val( x ); }
+    val  operator &  ( const CustomVal& x ) const;
+    val  operator && ( const val& x ) const;
+    val  operator && ( const int64_t x ) const			{ return *this && val( x ); }
+    val  operator && ( const double x ) const			{ return *this && val( x ); }
+    val  operator && ( const char * x ) const			{ return *this && val( x ); }
+    val  operator && ( const std::string x ) const		{ return *this && val( x ); }
+    val  operator && ( const CustomVal& x ) const;
+    val  operator |  ( const val& x ) const;
+    val  operator |  ( const int64_t x ) const			{ return *this |  val( x ); }
+    val  operator |  ( const double x ) const			{ return *this |  val( x ); }
+    val  operator |  ( const char * x ) const			{ return *this |  val( x ); }
+    val  operator |  ( const std::string x ) const		{ return *this |  val( x ); }
+    val  operator |  ( const CustomVal& x ) const;
+    val  operator || ( const val& x ) const;
+    val  operator || ( const int64_t x ) const			{ return *this || val( x ); }
+    val  operator || ( const double x ) const			{ return *this || val( x ); }
+    val  operator || ( const char * x ) const			{ return *this || val( x ); }
+    val  operator || ( const std::string x ) const		{ return *this || val( x ); }
+    val  operator || ( const CustomVal& x ) const;
+    val  operator ^  ( const val& x ) const;
+    val  operator ^  ( const int64_t x ) const			{ return *this ^  val( x ); }
+    val  operator ^  ( const double x ) const			{ return *this ^  val( x ); }
+    val  operator ^  ( const char * x ) const			{ return *this ^  val( x ); }
+    val  operator ^  ( const std::string x ) const		{ return *this ^  val( x ); }
+    val  operator ^  ( const CustomVal& x ) const;
+    bool operator >  ( const val& x ) const;
+    bool operator >  ( const int64_t x ) const			{ return *this >  val( x ); }
+    bool operator >  ( const double x ) const			{ return *this >  val( x ); }
+    bool operator >  ( const char * x ) const			{ return *this >  val( x ); }
+    bool operator >  ( const std::string x ) const		{ return *this >  val( x ); }
+    bool operator >  ( const CustomVal& x ) const;
+    bool operator >= ( const val& x ) const;
+    bool operator >= ( const int64_t x ) const			{ return *this >= val( x ); }
+    bool operator >= ( const double x ) const			{ return *this >= val( x ); }
+    bool operator >= ( const char * x ) const			{ return *this >= val( x ); }
+    bool operator >= ( const std::string x ) const		{ return *this >= val( x ); }
+    bool operator >= ( const CustomVal& x ) const;
+    bool operator <  ( const val& x ) const;
+    bool operator <  ( const int64_t x ) const			{ return *this <  val( x ); }
+    bool operator <  ( const double x ) const			{ return *this <  val( x ); }
+    bool operator <  ( const char * x ) const			{ return *this <  val( x ); }
+    bool operator <  ( const std::string x ) const		{ return *this <  val( x ); }
+    bool operator <  ( const CustomVal& x ) const;
+    bool operator <= ( const val& x ) const;
+    bool operator <= ( const int64_t x ) const			{ return *this <= val( x ); }
+    bool operator <= ( const double x ) const			{ return *this <= val( x ); }
+    bool operator <= ( const char * x ) const			{ return *this <= val( x ); }
+    bool operator <= ( const std::string x ) const		{ return *this <= val( x ); }
+    bool operator <= ( const CustomVal& x ) const;
+    bool operator != ( const val& x ) const;
+    bool operator != ( const int64_t x ) const			{ return *this != val( x ); }
+    bool operator != ( const double x ) const			{ return *this != val( x ); }
+    bool operator != ( const char * x ) const			{ return *this != val( x ); }
+    bool operator != ( const std::string x ) const		{ return *this != val( x ); }
+    bool operator != ( const CustomVal& x ) const;
+    bool operator == ( const val& x ) const;
+    bool operator == ( const int64_t x ) const			{ return *this == val( x ); }
+    bool operator == ( const double x ) const			{ return *this == val( x ); }
+    bool operator == ( const char * x ) const			{ return *this == val( x ); }
+    bool operator == ( const std::string x ) const		{ return *this == val( x ); }
+    bool operator == ( const CustomVal& x ) const;
 
     // these overwrite any previous contents (including kind)
     val& operator   = ( const val& x );
@@ -200,6 +268,24 @@ public:
     val& operator >>= ( const char * x )			{ *this = *this >> x; return *this; }
     val& operator >>= ( std::string x )				{ *this = *this >> x; return *this; }
     val& operator >>= ( const CustomVal& x )			{ *this = *this >> x; return *this; }
+    val& operator  &= ( const val& x )	        		{ *this = *this &  x; return *this; }
+    val& operator  &= ( const int64_t x )			{ *this = *this &  x; return *this; }
+    val& operator  &= ( const double x )			{ *this = *this &  x; return *this; }
+    val& operator  &= ( const char * x )			{ *this = *this &  x; return *this; }
+    val& operator  &= ( std::string x )				{ *this = *this &  x; return *this; }
+    val& operator  &= ( const CustomVal& x )			{ *this = *this &  x; return *this; }
+    val& operator  |= ( const val& x )	        		{ *this = *this |  x; return *this; }
+    val& operator  |= ( const int64_t x )			{ *this = *this |  x; return *this; }
+    val& operator  |= ( const double x )			{ *this = *this |  x; return *this; }
+    val& operator  |= ( const char * x )			{ *this = *this |  x; return *this; }
+    val& operator  |= ( std::string x )				{ *this = *this |  x; return *this; }
+    val& operator  |= ( const CustomVal& x )			{ *this = *this |  x; return *this; }
+    val& operator  ^= ( const val& x )	        		{ *this = *this ^  x; return *this; }
+    val& operator  ^= ( const int64_t x )			{ *this = *this ^  x; return *this; }
+    val& operator  ^= ( const double x )			{ *this = *this ^  x; return *this; }
+    val& operator  ^= ( const char * x )			{ *this = *this ^  x; return *this; }
+    val& operator  ^= ( std::string x )				{ *this = *this ^  x; return *this; }
+    val& operator  ^= ( const CustomVal& x )			{ *this = *this ^  x; return *this; }
 
     // list-only operations
     val&       push( const val& x );
