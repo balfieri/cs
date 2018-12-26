@@ -574,6 +574,8 @@ inline val::operator bool( void ) const
         case kind::BOOL:                return u.b;
         case kind::INT:                 return u.i != 0;
         case kind::STR:                 return u.s->s == "true" || u.s->s == "1";
+        case kind::LIST:                return size() != 0;
+        case kind::MAP:                 return size() != 0;
         case kind::CUSTOM:              return *u.c;
         default:                        die( "can't convert " + kind_to_str(k) + " to bool" ); return false;
     }
@@ -587,6 +589,8 @@ inline val::operator int64_t( void ) const
         case kind::INT:                 return u.i;
         case kind::FLT:                 return int64_t(u.f);
         case kind::STR:                 return std::atoi(u.s->s.c_str());
+        case kind::LIST:                return size();
+        case kind::MAP:                 return size();
         case kind::CUSTOM:              return *u.c;
         default:                        die( "can't convert " + kind_to_str(k) + " to int64_t" ); return 0;
     }
@@ -599,6 +603,8 @@ inline val::operator double( void ) const
         case kind::INT:                 return double(u.i);
         case kind::FLT:                 return u.f;
         case kind::STR:                 return std::atof(u.s->s.c_str());
+        case kind::LIST:                return double(size());
+        case kind::MAP:                 return double(size());
         case kind::CUSTOM:              return *u.c;
         default:                        die( "can't convert " + kind_to_str(k) + " to double" ); return 0.0;
     }
