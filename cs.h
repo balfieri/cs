@@ -166,6 +166,9 @@ public:
     _decl_aop2( |= )
     _decl_aop2( ^= )
 
+    // string-only operations
+    char       at( const val& i );                              // return character at index i 
+
     // list or map operators
     uint64_t   size( void ) const;                              // number of entries in list or map
     bool       exists( const val& key ) const;                  // returns true if key has a legal value in list/map
@@ -1196,10 +1199,21 @@ inline val  val::join( const val delim ) const
     return val( s );
 }
 
+char val::at( const val& i )
+{
+    csassert( k == kind::STR, "at() allowed only on STR" );    
+    return u.s->s.at( int64_t( i ) );
+}
+
 inline uint64_t val::size( void ) const
 {
     switch( k ) 
     {
+        case kind::STR:        
+        {
+            return u.s->s.length();
+        }
+
         case kind::LIST:        
         {
             return u.l->l.size();
@@ -1256,7 +1270,7 @@ inline       ValProxy::operator const val&( void ) const        { return v->get(
 inline void  ValProxy::operator = ( const val& other )          { v->set( *key, other );   }
 
 inline ValProxy   val::operator [] ( const val& key )           { return ValProxy( this, &key ); }
-inline const val& val::operator [] ( const val& key ) const     { return get( key );             }
+inline const val& val::operator [] ( const val& key ) const     { return get( key ); }
 
 inline const val& val::get( const val& key ) const
 {
