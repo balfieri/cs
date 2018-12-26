@@ -692,26 +692,37 @@ inline val& val::operator = ( const val& other )
 
 inline val val::operator - ( void ) const
 {
+    die( "- not implemented" );
     return *this;
 }
 
 inline val val::operator + ( const val& other ) const
 {
+    die( "+ not implemented" );
     return *this;
 }
 
 inline val val::operator -  ( const val& other ) const
 {
+    die( "- not implemented" );
     return *this;
 }
 
 inline val val::operator *  ( const val& other ) const
 {
+    die( "* not implemented" );
     return *this;
 }
 
 inline val val::operator / ( const val& other ) const
 {
+    die( "/ not implemented" );
+    return *this;
+}
+
+inline val val::operator % ( const val& other ) const
+{
+    die( "% not implemented" );
     return *this;
 }
 
@@ -908,6 +919,7 @@ inline val val::exe_path_dir( void )
 
 val val::run( val options ) const
 {
+    die( "run not implemented" );
     return val();
 }
 
