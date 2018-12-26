@@ -277,6 +277,14 @@ public:
     val& operator  ^= ( const char * x )			{ *this ^=  val( x ); return *this; }
     val& operator  ^= ( std::string x )				{ *this ^=  val( x ); return *this; }
 
+    // list or map operators
+    uint64_t   size( void ) const;                              // number of entries in list or map
+    bool       exists( const val& key ) const;                  // returns true if key has a legal value in list/map
+    const val& get( const val& key ) const;                     // read list/map using key 
+    void       set( const val& key, const val& v );             // write list/map using key with v
+    ValProxy   operator[]( const val& key );                    // could be read or write
+    const val& operator[]( const val& key ) const;              // read only
+
     // list-only operations
     val&       push( const val& x );
     val        shift( void );
@@ -286,14 +294,6 @@ public:
 
     // map-only operations
 
-    // list or map subscripting operator
-    uint64_t   size( void ) const;                              // number of entries in list or map
-    bool       exists( const val& key ) const;                  // returns true if key has a legal value in list/map
-    const val& get( const val& key ) const;                     // read list/map using key 
-    void       set( const val& key, const val& v );             // write list/map using key with v
-    ValProxy   operator[]( const val& key );                    // could be read or write
-    const val& operator[]( const val& key ) const;              // read only
-
     // function-only 
     val  operator () ( ... );                                   // call function with variable list of arguments
 
@@ -301,11 +301,15 @@ public:
     val  join( void );                                          // join thread or threads; returns status or list of statuses
 
     // processes
-    val  run( val options="" ) const;
-    // int status = run( "ls -l" );
-    // val out = cmd.run( "o+e" );       // return one file() for stdout+stderr
-    // val fd = cmd.run( "i,o,e" );      // returns list of 3 file() for stdin, stdout, sterr
-    // cmd << "ls -l\n";                 // write string to stdin of sh
+    val  run( val options="" ) const;                           // run this path (must be a STR)
+                                                                // options: ""                  - run sync;  return int status of run; process uses same stdin, stdout, stderr 
+                                                                //          "so+se"             - run async; return one string holding stdout+stderr output
+                                                                //          "lo+le"             - run async; return one list() holding separate lines for stdout+stderr output
+                                                                //          "so,se"             - run async; return list of 2 strings holding stdout vs. stderr outputs 
+                                                                //          "lo,le"             - run async; return list of 2 lists holding stdout vs. stderr lines
+                                                                //          "o+e"               - run async; return one read-only file() for combined stdout+stderr
+                                                                //          "o,e"               - run async; return list of 2 read-only file() for separate stdout and stderr
+                                                                //          "i,o,e"             - run async; return list of 3 file() for separate stdin, stdout and stderr
 
     // paths
     static val  exe_path( void );                               // full path of this executable
