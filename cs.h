@@ -861,6 +861,90 @@ inline val& val::operator += ( const val& x )
     return *this;
 }
 
+inline val& val::operator -= ( const val& x )
+{
+    switch( k ) 
+    {
+        case kind::INT:         u.i  -= int64_t( x );       break;
+        case kind::FLT:         u.f  -= double( x );        break;
+        case kind::CUSTOM:      *u.c -= x;                  break;
+        default:                die( "-= not defined for " + kind_to_str( k ) ); break;
+    }
+    return *this;
+}
+
+inline val& val::operator *= ( const val& x )
+{
+    switch( k ) 
+    {
+        case kind::INT:         u.i  *= int64_t( x );       break;
+        case kind::FLT:         u.f  *= double( x );        break;
+        case kind::CUSTOM:      *u.c *= x;                  break;
+        default:                die( "*= not defined for " + kind_to_str( k ) ); break;
+    }
+    return *this;
+}
+
+inline val& val::operator /= ( const val& x )
+{
+    switch( k ) 
+    {
+        case kind::INT:         u.i  /= int64_t( x );       break;
+        case kind::FLT:         u.f  /= double( x );        break;
+        case kind::CUSTOM:      *u.c /= x;                  break;
+        default:                die( "/= not defined for " + kind_to_str( k ) ); break;
+    }
+    return *this;
+}
+
+inline val& val::operator %= ( const val& x )
+{
+    switch( k ) 
+    {
+        case kind::INT:         u.i  %= int64_t( x );       break;
+        case kind::FLT:         u.f   = std::remainder( u.f, double( x ) ); break;
+        case kind::CUSTOM:      *u.c %= x;                  break;
+        default:                die( "%= not defined for " + kind_to_str( k ) ); break;
+    }
+    return *this;
+}
+
+inline val& val::operator &= ( const val& x )
+{
+    switch( k ) 
+    {
+        case kind::BOOL:        u.b  &= bool( x );          break;
+        case kind::INT:         u.i  &= int64_t( x );       break;
+        case kind::CUSTOM:      *u.c &= x;                  break;
+        default:                die( "&= not defined for " + kind_to_str( k ) ); break;
+    }
+    return *this;
+}
+
+inline val& val::operator |= ( const val& x )
+{
+    switch( k ) 
+    {
+        case kind::BOOL:        u.b  |= bool( x );          break;
+        case kind::INT:         u.i  |= int64_t( x );       break;
+        case kind::CUSTOM:      *u.c |= x;                  break;
+        default:                die( "|= not defined for " + kind_to_str( k ) ); break;
+    }
+    return *this;
+}
+
+inline val& val::operator ^= ( const val& x )
+{
+    switch( k ) 
+    {
+        case kind::BOOL:        u.b  ^= bool( x );          break;
+        case kind::INT:         u.i  ^= int64_t( x );       break;
+        case kind::CUSTOM:      *u.c ^= x;                  break;
+        default:                die( "^= not defined for " + kind_to_str( k ) ); break;
+    }
+    return *this;
+}
+
 inline val& val::push( const val& x )
 {
     csassert( k == kind::LIST, "can only push a LIST" );
