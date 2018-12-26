@@ -1,8 +1,12 @@
 #include "cs.h"
 
+using std::cout;
+
 int main( int argc, const char * argv[] )
 {
-    val args = val::list( argc, argv );
-    std::cout << "Command line args: " << args << "\n";
+    val exe  = val::exe_path();
+    val args = val::list( argc-1, argv+1 );
+    cout << "Full path to this executable: "        << exe << "\n";
+    cout << "Arguments passed to this executable: " << args << "\n";
     return 0;
 }
