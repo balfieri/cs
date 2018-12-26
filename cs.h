@@ -740,7 +740,11 @@ inline val val::operator ~ ( void ) const
 
 inline val val::operator + ( const val& x ) const
 {
-    if ( k == x.k ) {
+    if ( k == kind::CUSTOM ) {
+        return new CustomVal( *u.c + x );
+    } else if ( x.k == kind::CUSTOM ) {
+        return new CustomVal( *x.u.c + *this );
+    } else if ( k == x.k ) {
         switch( k )
         {
             case kind::INT:             return u.i + x.u.i;
@@ -766,56 +770,178 @@ inline val val::operator + ( const val& x ) const
     }
 }
 
-inline val val::operator -  ( const val& x ) const
+inline val val::operator - ( const val& x ) const
 {
-    die( "- not implemented" );
-    return *this;
+    if ( k == kind::CUSTOM ) {
+        return new CustomVal( *u.c - x );
+    } else if ( x.k == kind::CUSTOM ) {
+        return new CustomVal( *x.u.c - *this );
+    } else if ( k == x.k ) {
+        switch( k )
+        {
+            case kind::INT:             return u.i - x.u.i;
+            case kind::FLT:             return u.f - x.u.f;
+            default:                    die( kind_to_str( k ) + " - " + kind_to_str( x.k ) + " is not supported" ); return val();
+        }
+    } else {
+        if ( (k == kind::INT && x.k == kind::FLT) ||
+             (k == kind::FLT && x.k == kind::INT) ) {
+            return double() - double( x );
+        } else {
+            die( kind_to_str( k ) + " - " + kind_to_str( x.k ) + " is not supported" );
+            return val();
+        }
+    }
 }
 
-inline val val::operator *  ( const val& x ) const
+inline val val::operator * ( const val& x ) const
 {
-    die( "* not implemented" );
-    return *this;
+    if ( k == kind::CUSTOM ) {
+        return new CustomVal( *u.c * x );
+    } else if ( x.k == kind::CUSTOM ) {
+        return new CustomVal( *x.u.c * *this );
+    } else if ( k == x.k ) {
+        switch( k )
+        {
+            case kind::INT:             return u.i * x.u.i;
+            case kind::FLT:             return u.f * x.u.f;
+            default:                    die( kind_to_str( k ) + " * " + kind_to_str( x.k ) + " is not supported" ); return val();
+        }
+    } else {
+        if ( (k == kind::INT && x.k == kind::FLT) ||
+             (k == kind::FLT && x.k == kind::INT) ) {
+            return double() * double( x );
+        } else {
+            die( kind_to_str( k ) + " * " + kind_to_str( x.k ) + " is not supported" );
+            return val();
+        }
+    }
 }
 
 inline val val::operator / ( const val& x ) const
 {
-    die( "/ not implemented" );
-    return *this;
+    if ( k == kind::CUSTOM ) {
+        return new CustomVal( *u.c / x );
+    } else if ( k == x.k ) {
+        switch( k )
+        {
+            case kind::INT:             return u.i / x.u.i;
+            case kind::FLT:             return u.f / x.u.f;
+            default:                    die( kind_to_str( k ) + " / " + kind_to_str( x.k ) + " is not supported" ); return val();
+        }
+    } else {
+        if ( (k == kind::INT && x.k == kind::FLT) ||
+             (k == kind::FLT && x.k == kind::INT) ) {
+            return double() / double( x );
+        } else {
+            die( kind_to_str( k ) + " / " + kind_to_str( x.k ) + " is not supported" );
+            return val();
+        }
+    }
 }
 
 inline val val::operator % ( const val& x ) const
 {
-    die( "% not implemented" );
-    return *this;
+    if ( k == kind::CUSTOM ) {
+        return new CustomVal( *u.c % x );
+    } else if ( k == x.k ) {
+        switch( k )
+        {
+            case kind::INT:             return u.i % x.u.i;
+            case kind::FLT:             return std::remainder( u.f, x.u.f );
+            default:                    die( kind_to_str( k ) + " % " + kind_to_str( x.k ) + " is not supported" ); return val();
+        }
+    } else {
+        if ( (k == kind::INT && x.k == kind::FLT) ||
+             (k == kind::FLT && x.k == kind::INT) ) {
+            return std::remainder( double(), double( x ) );
+        } else {
+            die( kind_to_str( k ) + " % " + kind_to_str( x.k ) + " is not supported" );
+            return val();
+        }
+    }
 }
 
 inline val val::operator & ( const val& x ) const
 {
-    die( "& not implemented" );
-    return *this;
+    if ( k == kind::CUSTOM ) {
+        return new CustomVal( *u.c & x );
+    } else if ( x.k == kind::CUSTOM ) {
+        return new CustomVal( *x.u.c & *this );
+    } else if ( k == x.k ) {
+        switch( k )
+        {
+            case kind::BOOL:            return u.b & x.u.i;
+            case kind::INT:             return u.i & x.u.i;
+            default:                    die( kind_to_str( k ) + " & " + kind_to_str( x.k ) + " is not supported" ); return val();
+        }
+    } else {
+        if ( (k == kind::INT  && x.k == kind::BOOL) ||
+             (k == kind::BOOL && x.k == kind::INT) ) {
+            return int64_t() & int64_t( x );
+        } else {
+            die( kind_to_str( k ) + " & " + kind_to_str( x.k ) + " is not supported" );
+            return val();
+        }
+    }
 }
 
 inline bool val::operator && ( const val& x ) const
 {
-    return bool( *this ) && bool( x );
+    return bool() && bool( x );
 }
 
 inline val val::operator | ( const val& x ) const
 {
-    die( "| not implemented" );
-    return *this;
+    if ( k == kind::CUSTOM ) {
+        return new CustomVal( *u.c | x );
+    } else if ( x.k == kind::CUSTOM ) {
+        return new CustomVal( *x.u.c | *this );
+    } else if ( k == x.k ) {
+        switch( k )
+        {
+            case kind::BOOL:            return u.b | x.u.i;
+            case kind::INT:             return u.i | x.u.i;
+            default:                    die( kind_to_str( k ) + " | " + kind_to_str( x.k ) + " is not supported" ); return val();
+        }
+    } else {
+        if ( (k == kind::INT  || x.k == kind::BOOL) ||
+             (k == kind::BOOL || x.k == kind::INT) ) {
+            return int64_t() | int64_t( x );
+        } else {
+            die( kind_to_str( k ) + " | " + kind_to_str( x.k ) + " is not supported" );
+            return val();
+        }
+    }
 }
 
 inline bool val::operator || ( const val& x ) const
 {
-    return bool( *this ) || bool( x );
+    return bool() || bool( x );
 }
 
 inline val val::operator ^ ( const val& x ) const
 {
-    die( "^ not implemented" );
-    return *this;
+    if ( k == kind::CUSTOM ) {
+        return new CustomVal( *u.c ^ x );
+    } else if ( x.k == kind::CUSTOM ) {
+        return new CustomVal( *x.u.c ^ *this );
+    } else if ( k == x.k ) {
+        switch( k )
+        {
+            case kind::BOOL:            return u.b ^ x.u.i;
+            case kind::INT:             return u.i ^ x.u.i;
+            default:                    die( kind_to_str( k ) + " | " + kind_to_str( x.k ) + " is not supported" ); return val();
+        }
+    } else {
+        if ( (k == kind::INT  || x.k == kind::BOOL) ||
+             (k == kind::BOOL || x.k == kind::INT) ) {
+            return int64_t() ^ int64_t( x );
+        } else {
+            die( kind_to_str( k ) + " ^ " + kind_to_str( x.k ) + " is not supported" );
+            return val();
+        }
+    }
 }
 
 inline val val::operator << ( const val& x ) const
@@ -842,8 +968,23 @@ inline val val::operator >> ( const val& x ) const
 
 inline bool val::operator < ( const val& x ) const
 {
-    die( "< not implemented" );
-    return *this;
+    if ( k == x.k ) {
+        switch( k )
+        {
+            case kind::BOOL:            return u.b < x.u.b;
+            case kind::INT:             return u.i < x.u.i;
+            case kind::FLT:             return u.f < x.u.f;
+            default:                    die( kind_to_str( k ) + " < " + kind_to_str( x.k ) + " is not supported" ); return val();
+        }
+    } else {
+        if ( (k == kind::INT && x.k == kind::FLT) ||
+             (k == kind::FLT && x.k == kind::INT) ) {
+            return double() < double( x );
+        } else {
+            die( kind_to_str( k ) + " - " + kind_to_str( x.k ) + " is not supported" );
+            return val();
+        }
+    }
 }
 
 inline bool val::operator <= ( const val& x ) const
