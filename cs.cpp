@@ -37,6 +37,7 @@ int main( int argc, const char * argv[] )
     val cs_dir   = val::exe_path_dir();
     val exe_name = argv[1];
     val cpp_name = exe_name + ".cpp";
+    csassert( cpp_name.path_exists(), val("cpp file ") + cpp_name + " does not exist" );
     val CFLAGS   = val( " -std=c++17 -O3 -Werror -Wextra -Wstrict-aliasing -pedantic" ) +
                    " -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization" +
                    " -Wformat=2 -Winit-self -Wmissing-include-dirs  -Woverloaded-virtual -Wredundant-decls -Wsign-promo" +
