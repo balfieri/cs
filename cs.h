@@ -718,9 +718,9 @@ inline val val::operator - ( void ) const
     switch( k )
     {
         case kind::BOOL:                
-        case kind::INT:                 return val( -int64_t() );
-        case kind::CUSTOM:              return val( new CustomVal( -*u.c ) );
-        default:                        return val( -double() );
+        case kind::INT:                 return -int64_t();
+        case kind::CUSTOM:              return new CustomVal( -*u.c );
+        default:                        return -double();
     }
 }
 
@@ -733,15 +733,37 @@ inline val val::operator ~ ( void ) const
 {
     switch( k )
     {
-        case kind::CUSTOM:              return val( new CustomVal( ~*u.c ) );
-        default:                        return val( ~int64_t() );
+        case kind::CUSTOM:              return new CustomVal( ~*u.c );
+        default:                        return ~int64_t();
     }
 }
 
 inline val val::operator + ( const val& x ) const
 {
-    die( "+ not implemented" );
-    return *this;
+    if ( k == x.k ) {
+        switch( k )
+        {
+            case kind::INT:             return u.i + x.u.i;
+            case kind::FLT:             return u.f + x.u.f;
+            case kind::STR:             return u.s->s + x.u.s->s;
+            case kind::LIST:            { val v = *this; v.push( x ); return v; }
+            default:                    die( kind_to_str( k ) + " + " + kind_to_str( x.k ) + " is not supported" ); return val();
+        }
+    } else {
+        if ( (k == kind::INT && x.k == kind::FLT) ||
+             (k == kind::FLT && x.k == kind::INT) ) {
+            return double() + double( x );
+        } else if ( k == kind::STR ) {
+            return std::string() + std::string( x );
+        } else if ( k == kind::LIST ) {
+            val v = *this;
+            v.push( x );
+            return v;
+        } else {
+            die( kind_to_str( k ) + " + " + kind_to_str( x.k ) + " is not supported" );
+            return val();
+        }
+    }
 }
 
 inline val val::operator -  ( const val& x ) const
