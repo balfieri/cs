@@ -674,55 +674,69 @@ inline val::operator CustomVal&( void ) const
     return *u.c;
 }
 
-inline val& val::operator = ( const val& other )
-{
-    free();
-    k = other.k;
-    u = other.u;
-    switch( k ) 
-    {
-        case kind::STR:         u.s->ref_cnt++; break;
-        case kind::LIST:        u.l->ref_cnt++; break;
-        case kind::MAP:         u.m->ref_cnt++; break;
-        case kind::CUSTOM:      *u.c = other;   break;
-        default:                                break;
-    }
-    return *this;
-}
-
 inline val val::operator - ( void ) const
 {
     die( "- not implemented" );
     return *this;
 }
 
-inline val val::operator + ( const val& other ) const
+inline val val::operator ~ ( void ) const
+{
+    die( "~ not implemented" );
+    return *this;
+}
+
+inline bool val::operator ! ( void ) const
+{
+    die( "! not implemented" );
+    return *this;
+}
+
+inline val val::operator + ( const val& x ) const
 {
     die( "+ not implemented" );
     return *this;
 }
 
-inline val val::operator -  ( const val& other ) const
+inline val val::operator -  ( const val& x ) const
 {
     die( "- not implemented" );
     return *this;
 }
 
-inline val val::operator *  ( const val& other ) const
+inline val val::operator *  ( const val& x ) const
 {
     die( "* not implemented" );
     return *this;
 }
 
-inline val val::operator / ( const val& other ) const
+inline val val::operator / ( const val& x ) const
 {
     die( "/ not implemented" );
     return *this;
 }
 
-inline val val::operator % ( const val& other ) const
+inline val val::operator % ( const val& x ) const
 {
     die( "% not implemented" );
+    return *this;
+}
+
+inline val val::operator & ( const val& x ) const
+{
+    die( "& not implemented" );
+    return *this;
+}
+
+inline val val::operator | ( const val& x ) const
+{
+    die( "| not implemented" );
+    return *this;
+}
+
+inline val val::operator ^ ( const val& x ) const
+{
+    die( "^ not implemented" );
     return *this;
 }
 
@@ -746,6 +760,58 @@ inline val val::operator >> ( const val& x ) const
 //      case kind::CUSTOM:      return *u.c >> x;                                     
         default:                die( "can't right-shift " + kind_to_str(k) + " val" ); return val();
     }
+}
+
+inline bool val::operator < ( const val& x ) const
+{
+    die( "< not implemented" );
+    return *this;
+}
+
+inline bool val::operator <= ( const val& x ) const
+{
+    die( "<= not implemented" );
+    return *this;
+}
+
+inline bool val::operator > ( const val& x ) const
+{
+    die( "> not implemented" );
+    return *this;
+}
+
+inline bool val::operator >= ( const val& x ) const
+{
+    die( ">= not implemented" );
+    return *this;
+}
+
+inline bool val::operator != ( const val& x ) const
+{
+    die( "!= not implemented" );
+    return *this;
+}
+
+inline bool val::operator == ( const val& x ) const
+{
+    die( "== not implemented" );
+    return *this;
+}
+
+inline val& val::operator = ( const val& x )
+{
+    free();
+    k = x.k;
+    u = x.u;
+    switch( k ) 
+    {
+        case kind::STR:         u.s->ref_cnt++; break;
+        case kind::LIST:        u.l->ref_cnt++; break;
+        case kind::MAP:         u.m->ref_cnt++; break;
+        case kind::CUSTOM:      *u.c = x;       break;
+        default:                                break;
+    }
+    return *this;
 }
 
 inline val& val::push( const val& x )
