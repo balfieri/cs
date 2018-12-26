@@ -33,6 +33,7 @@
 #include <map>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -145,12 +146,12 @@ public:
     val  operator >> ( const CustomVal& other ) const;
 
     // these overwrite any previous contents (including kind)
+    val& operator   = ( const val& x );
     val& operator   = ( const bool x );
     val& operator   = ( const int64_t x );
     val& operator   = ( const double x );
     val& operator   = ( std::string x );
     val& operator   = ( CustomVal * x );
-    val& operator   = ( const val& x );
     val& operator  += ( const val& x )		{ *this = *this +  x; return *this; }
     val& operator  += ( const int64_t x )	{ *this = *this +  x; return *this; }
     val& operator  += ( const double x )	{ *this = *this +  x; return *this; }
@@ -198,12 +199,12 @@ public:
     // map-only operations
 
     // list or map subscripting operator
+    uint64_t   size( void ) const;                              // number of entries in list or map
     bool       exists( const val& key ) const;                  // returns true if key has a legal value in list/map
     const val& get( const val& key ) const;                     // read list/map using key 
     void       set( const val& key, const val& v );             // write list/map using key with v
     ValProxy   operator[]( const val& key );                    // could be read or write
     const val& operator[]( const val& key ) const;              // read only
-    // foreach(e, x) ...
 
     // function-only 
     val  operator () ( ... );                                   // call function with variable list of arguments
@@ -224,6 +225,29 @@ public:
 
     // regular expressions
     // val x = y.matches( “regexp” )
+
+    class iterator: public std::iterator< std::input_iterator_tag,   // iterator_category
+                                          val,                       // value_type
+                                          int64_t,                   // difference_type
+                                          const int64_t *,           // pointer
+                                          const val&                 // reference
+                                        >
+    {
+    public:
+        inline explicit  iterator( val * _v, int64_t _pos )             { v = _v; pos = _pos;                                } 
+        inline iterator& operator ++ ( void )                           { pos++; return *this;                               }
+        inline iterator  operator ++ ( int )                            { iterator retval = *this; ++(*this); return retval; }
+        inline bool      operator == ( const iterator& other ) const    { return pos == other.pos;                           }
+        inline bool      operator != ( const iterator& other ) const    { return pos != other.pos;                           }
+        inline reference operator *  ( void ) const                     { return (*v)[pos];                                  }
+    private:
+        val *   v;
+        int64_t pos;
+    };
+
+    iterator begin( void )                                              { return iterator( this, 0 );                        }
+    iterator end( void )                                                { return iterator( this, size()-1 );                 }
+    // foreach(e, x) ...
 
 private:
     enum class kind
@@ -322,6 +346,7 @@ public:
     virtual CustomVal& operator << ( const val& x ) { die( "no override available for inserting into a CustomVal" ); (void)x; return *this; }
     virtual CustomVal& operator >> ( val& x )       { die( "no override available for extracing from a CustomVal" ); (void)x; return *this; }
 
+    virtual uint64_t   size( void ) const                  { die( "no override available for size() of CustomVal" ); return 0; }
     virtual bool       exists( const val& key ) const      { die( "no override available for exists() of CustomVal" ); (void)key; return false; }
     virtual const val& get( const val& key ) const         { die( "no override available for get() of CustomVal" ); (void)key; return undef; }
     virtual void       set( const val& key, const val& x ) { die( "no override available for set() of CustomVal" ); (void)key; (void)x;  }
@@ -563,6 +588,22 @@ inline val::operator CustomVal&( void ) const
     return *u.c;
 }
 
+inline val& val::operator = ( const val& other )
+{
+    free();
+    k = other.k;
+    u = other.u;
+    switch( k ) 
+    {
+        case kind::STR:         u.s->ref_cnt++; break;
+        case kind::LIST:        u.l->ref_cnt++; break;
+        case kind::MAP:         u.m->ref_cnt++; break;
+        case kind::CUSTOM:      *u.c = other;   break;
+        default:                                break;
+    }
+    return *this;
+}
+
 inline val& val::operator = ( const bool x )
 {
     free();
@@ -601,22 +642,6 @@ inline val& val::operator = ( CustomVal * x )
     x->inc_ref_cnt();
     k = kind::CUSTOM;
     u.c = x;
-    return *this;
-}
-
-inline val& val::operator = ( const val& other )
-{
-    free();
-    k = other.k;
-    u = other.u;
-    switch( k ) 
-    {
-        case kind::STR:         u.s->ref_cnt++; break;
-        case kind::LIST:        u.l->ref_cnt++; break;
-        case kind::MAP:         u.m->ref_cnt++; break;
-        case kind::CUSTOM:      *u.c = other;   break;
-        default:                                break;
-    }
     return *this;
 }
 
@@ -694,6 +719,33 @@ inline val  val::join( const val delim ) const
         s += std::string( *it );
     }
     return val( s );
+}
+
+inline uint64_t val::size( void ) const
+{
+    switch( k ) 
+    {
+        case kind::LIST:        
+        {
+            return u.l->l.size();
+        }
+
+        case kind::MAP:        
+        {
+            return u.m->m.size();
+        }
+
+        case kind::CUSTOM:      
+        {
+            return u.c->size();
+        }
+
+        default:
+        {
+            die( "can't call size() on a " + kind_to_str(k) + " val" );  
+            return false;
+        }
+    }
 }
 
 inline bool val::exists( const val& key ) const
