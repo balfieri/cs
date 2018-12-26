@@ -12,6 +12,20 @@ This is all open-source with no restrictions.  See LICENSE.md for details (MIT l
 </p>
 
 <p>
+The class "val" denotes a dynamically-typed value.  Vals can take on 
+various built-in types, including 64-bit ints, doubles, lists, maps, multi-dimensional 
+arrays, files, and threads.  Advanced users may add built-in types to val using the CustomVal class.
+</p>
+
+<p>
+The best way to learn CS is by example, so let's get started.
+</p>
+
+<h1>Basic</h1>
+
+<h1>Advanced</h1>
+
+<p>
 Bob Alfieri<br>
 Chapel Hill, NC
 </p>
