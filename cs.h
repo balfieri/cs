@@ -1108,6 +1108,7 @@ inline bool val::operator != ( const val& x ) const
             case kind::BOOL:            return u.b != x.u.b;
             case kind::INT:             return u.i != x.u.i;
             case kind::FLT:             return u.f != x.u.f;
+            case kind::STR:             return u.s->s != x.u.s->s;
             default:                    die( kind_to_str( k ) + " != " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
@@ -1133,6 +1134,7 @@ inline bool val::operator == ( const val& x ) const
             case kind::BOOL:            return u.b == x.u.b;
             case kind::INT:             return u.i == x.u.i;
             case kind::FLT:             return u.f == x.u.f;
+            case kind::STR:             return u.s->s == x.u.s->s;
             default:                    die( kind_to_str( k ) + " == " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
