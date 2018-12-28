@@ -34,6 +34,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <regex>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -167,7 +168,9 @@ public:
     _decl_aop2( ^= )
 
     // string-only operations
-    char       at( const val& i );                              // return character at index i 
+    char       at( const val& i ) const;                                                   // return character at index i 
+    val        match( const val& regex, const val& options="" ) const;                     // returns LIST with entire match and submatches; else returns UNDEF
+    val        replace( const val& regex, const val& subst, const val& options="" ) const; // returns substituted string; else returns UNDEF
 
     // list or map operators
     uint64_t   size( void ) const;                              // number of entries in list or map
@@ -217,10 +220,6 @@ public:
     time_t      path_time_modified( void ) const;               // returns time last modified (seconds since 1970)
     time_t      path_time_accessed( void ) const;               // returns time last accessed (seconds since 1970)
     static val  exe_path( void );                               // full path of current executable
-
-    // regular expressions
-    val         match( const val& regex, const val& options="" ) const; // if current STR val matches regex, returns LIST with entire match and submatches; else returns UNDEF
-    val         replace( const val& regex, const val& subst, const val& options="" ) const; // if current STR val matches entire regex, returns substituted string; else returns UNDEF
 
     // list/map iterator
     class iterator: public std::iterator< std::input_iterator_tag,   // iterator_category
@@ -1209,10 +1208,53 @@ inline val  val::join( const val delim ) const
     return val( s );
 }
 
-char val::at( const val& i )
+inline char val::at( const val& i ) const
 {
     csassert( k == kind::STR, "at() allowed only on STR" );    
     return u.s->s.at( int64_t( i ) );
+}
+
+inline val val::match( const val& regex, const val& options ) const
+{
+    // validate options
+    std::string o_s = options;
+    std::regex::flag_type flags;
+    bool got_grammar = false;
+    for( size_t i = 0; i < o_s.length(); i++ )
+    {
+        char ch = o_s.at( i );
+        switch( ch )
+        {
+            case 'i': flags |= std::regex_constants::icase;                                    break;
+            case 'j': flags |= std::regex_constants::ECMAScript;       got_grammar = true;     break;
+            case 'p': flags |= std::regex_constants::basic;            got_grammar = true;     break;
+            case 'P': flags |= std::regex_constants::extended;         got_grammar = true;     break;
+            case 'a': flags |= std::regex_constants::awk;              got_grammar = true;     break;
+            case 'g': flags |= std::regex_constants::grep;             got_grammar = true;     break;
+            case 'G': flags |= std::regex_constants::egrep;            got_grammar = true;     break;
+            default: die( "unknown match() regex option character: " + std::to_string(ch) ); break;
+        }
+    }
+    if ( !got_grammar ) flags |= std::regex_constants::ECMAScript;
+
+    // convert them all to strings 
+    std::string s   = *this;
+    std::regex  re  = std::regex( std::string(regex), flags );
+    std::smatch sm;
+    if ( !std::regex_match( s, sm, re ) ) return val();  // return UNDEF
+
+    // return matches as a list
+    val matches = list();
+    for( size_t i = 0; i < sm.size(); i++ ) matches += sm[i];
+    return matches;
+}
+
+inline val val::replace( const val& regex, const val& subst, const val& options ) const
+{
+    (void)regex;
+    (void)subst;
+    (void)options;
+    return val();  // TODO
 }
 
 inline uint64_t val::size( void ) const
@@ -1437,21 +1479,6 @@ inline val val::exe_path( void )
     int ret = proc_pidpath( pid, path, sizeof(path) );
     csassert( ret > 0, "proc_pidpath() had an error" );
     return val( path );
-}
-
-inline val val::match( const val& regex, const val& options ) const
-{
-    (void)regex;
-    (void)options;
-    return val(); // TODO
-}
-
-inline val val::replace( const val& regex, const val& subst, const val& options ) const
-{
-    (void)regex;
-    (void)subst;
-    (void)options;
-    return val();  // TODO
 }
 
 #endif // __cs_h
