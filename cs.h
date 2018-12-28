@@ -84,10 +84,10 @@ public:
     val( std::string x );
     val( const val& x );
     val( CustomVal * x );
+    val( int64_t cnt, const char * args[] );                    // for turning main() argc and argv into a list
     val( std::initializer_list<val> vals );                     // val{ a, b, c } returns a list containing a, b, c
    
     static val list( void );                                    // same as val{} (the latter is the preferred way)
-    static val list( int64_t cnt, const char * args[] );        // for turning main() argc and argv into a list
    
     static val map( void );
     static val map( val& key_val_list );                        // flattened list of: key0, val0, key1, val1, ...
@@ -514,6 +514,12 @@ inline val::val( CustomVal * x )
     u.c = x;
 }
 
+inline val::val( int64_t cnt, const char * args[] )
+{
+    *this = list();
+    for( int64_t i = 0; i < cnt; i++ ) push( args[i] ); 
+}
+
 inline val::val( std::initializer_list<val> vals )
 {
     *this = list();
@@ -532,16 +538,6 @@ inline val val::list( void )
     l.k = kind::LIST;
     l.u.l = new List;
     l.u.l->ref_cnt = 1;
-    return l;
-}
-
-inline val val::list( int64_t cnt, const char * args[] )
-{
-    val l = list();
-    for( int64_t i = 0; i < cnt; i++ )
-    {
-        l.push( args[i] ); 
-    }
     return l;
 }
 

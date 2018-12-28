@@ -34,8 +34,9 @@ using std::cout;
 int main( int argc, const char * argv[] )
 {
     csassert( argc > 1, "usage: cs <basename>" );
+    val args     = val( argc-1, argv+1 );
     val cs_dir   = val::exe_path().path_dir();
-    val exe_name = argv[1];
+    val exe_name = args.shift();
     val cpp_name = exe_name + ".cpp";
     csassert( cpp_name.path_exists(), val("cpp file ") + cpp_name + " does not exist" );
     val CFLAGS   = val( " -std=c++17 -O3 -Werror -Wextra -Wstrict-aliasing -pedantic" ) +
@@ -46,7 +47,7 @@ int main( int argc, const char * argv[] )
     val cmd = val("g++ ") + CFLAGS + " -o " + exe_name + " " + cpp_name;
     if ( cmd.run() != 0 ) die( "build failed" );
     if ( exe_name != "cs" ) {
-        cmd = val("./") + exe_name;
+        cmd = val("./") + exe_name + " " + args;
         if ( cmd.run() != 0 ) die( "run failed" );
     }
     return 0;
