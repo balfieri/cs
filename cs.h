@@ -173,7 +173,7 @@ public:
     //
     char       at( const val& i ) const;                                                     // return character at index i 
 
-    // regular expressions - any val argument is first converted to a STR using std::string(), so careful how you use this
+    // regular expressions - any val argument is first converted to a STR using std::string(), so be careful how you use this
     //
     // regex option characters: 
     //     i  == case insensitive
