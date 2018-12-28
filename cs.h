@@ -168,9 +168,20 @@ public:
     _decl_aop2( ^= )
 
     // string-only operations
+    // regex option characters: 
+    //     i == case insensitive
+    //     j == javascript
+    //     p == basic POSIX
+    //     P == extended POSIX
+    //     a == awk
+    //     g == grep
+    //     G == egrep
     char       at( const val& i ) const;                                                   // return character at index i 
-    val        match( const val& regex, const val& options="" ) const;                     // returns LIST with entire match and submatches; else returns UNDEF
+    std::regex regex( const val& options="" ) const;                                       // returns compiled std::regex this regex string and options string
+    val        match( const val& re, const val& options="" ) const;                        // returns LIST with entire match and submatches; else returns UNDEF
+    val        match( const std::regex& regex ) const;                                     // same but uses precompiled std::regex
     val        replace( const val& regex, const val& subst, const val& options="" ) const; // returns substituted string; else returns UNDEF
+    val        replace( const std::regex& regex, const val& subst) const;                  // same but uses precompiled std::regex
 
     // list or map operators
     uint64_t   size( void ) const;                              // number of entries in list or map
@@ -1214,7 +1225,7 @@ inline char val::at( const val& i ) const
     return u.s->s.at( int64_t( i ) );
 }
 
-inline val val::match( const val& regex, const val& options ) const
+inline std::regex val::regex( const val& options ) const
 {
     // validate options
     std::string o_s = options;
@@ -1232,16 +1243,20 @@ inline val val::match( const val& regex, const val& options ) const
             case 'a': flags |= std::regex_constants::awk;              got_grammar = true;     break;
             case 'g': flags |= std::regex_constants::grep;             got_grammar = true;     break;
             case 'G': flags |= std::regex_constants::egrep;            got_grammar = true;     break;
-            default: die( "unknown match() regex option character: " + std::to_string(ch) ); break;
+            default: die( "unknown regex option character: " + std::to_string(ch) );           break;
         }
     }
     if ( !got_grammar ) flags |= std::regex_constants::ECMAScript;
 
-    // convert them all to strings 
+    return std::regex( std::string(*this), flags );
+}
+
+inline val val::match( const std::regex& regex ) const
+{
+    // convert to strings 
     std::string s   = *this;
-    std::regex  re  = std::regex( std::string(regex), flags );
     std::smatch sm;
-    if ( !std::regex_match( s, sm, re ) ) return val();  // return UNDEF
+    if ( !std::regex_match( s, sm, regex ) ) return val();  // return UNDEF
 
     // return matches as a list
     val matches = list();
@@ -1249,12 +1264,21 @@ inline val val::match( const val& regex, const val& options ) const
     return matches;
 }
 
-inline val val::replace( const val& regex, const val& subst, const val& options ) const
+inline val val::match( const val& re, const val& options ) const
+{
+    return match( re.regex( options ) );
+}
+
+inline val val::replace( const std::regex& regex, const val& subst ) const
 {
     (void)regex;
     (void)subst;
-    (void)options;
     return val();  // TODO
+}
+
+inline val val::replace( const val& re, const val& subst, const val& options ) const
+{
+    return replace( re.regex( options ), subst );
 }
 
 inline uint64_t val::size( void ) const
