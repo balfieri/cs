@@ -168,6 +168,7 @@ public:
     _decl_aop2( ^= )
 
     // string-only operations
+    //
     // regex option characters: 
     //     i == case insensitive
     //     j == javascript
@@ -176,12 +177,21 @@ public:
     //     a == awk
     //     g == grep
     //     G == egrep
+    //
+    // regex fmt special escape sequences:
+    //     $n == n-th backreference (i.e., a copy of the n-th matched group specified with parentheses in the regex pattern).
+    //           n must be an integer value designating a valid backreference, greater than 0, and of two digits at most.
+    //     $& == a copy of the entire match
+    //     $` == the prefix (i.e., the part of the target sequence that precedes the match)
+    //     $´ == the suffix (i.e., the part of the target sequence that follows the match)
+    //     $$ == a single $ character
+    //
     char       at( const val& i ) const;                                                   // return character at index i 
     std::regex regex( const val& options="" ) const;                                       // returns compiled std::regex this regex string and options string
     val        match( const val& re, const val& options="" ) const;                        // returns LIST with entire match and submatches; else returns UNDEF
     val        match( const std::regex& regex ) const;                                     // same but uses precompiled std::regex
-    val        replace( const val& regex, const val& subst, const val& options="" ) const; // returns substituted string; else returns UNDEF
-    val        replace( const std::regex& regex, const val& subst) const;                  // same but uses precompiled std::regex
+    val        replace( const val& regex, const val& fmt, const val& options="" ) const;   // returns substituted string using std regex fmt; else returns unmodified string
+    val        replace( const std::regex& regex, const val& subst ) const;                 // same but uses precompiled std::regex
 
     // list or map operators
     uint64_t   size( void ) const;                              // number of entries in list or map
@@ -1269,16 +1279,18 @@ inline val val::match( const val& re, const val& options ) const
     return match( re.regex( options ) );
 }
 
-inline val val::replace( const std::regex& regex, const val& subst ) const
+inline val val::replace( const std::regex& regex, const val& fmt ) const
 {
-    (void)regex;
-    (void)subst;
-    return val();  // TODO
+    // convert to strings 
+    std::string s   = *this;
+    std::string f_s = fmt;
+    std::string r = std::regex_replace( s, regex, f_s );
+    return r;
 }
 
-inline val val::replace( const val& re, const val& subst, const val& options ) const
+inline val val::replace( const val& re, const val& fmt, const val& options ) const
 {
-    return replace( re.regex( options ), subst );
+    return replace( re.regex( options ), fmt );
 }
 
 inline uint64_t val::size( void ) const
