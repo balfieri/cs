@@ -191,9 +191,9 @@ public:
     val        match( const val& re, const val& options="" ) const;                          // returns LIST with entire match and submatches; else returns UNDEF
     val        match( const std::regex& regex ) const;                                       // same but uses precompiled std::regex
     val        replace( const val& regex, const val& fmt, const val& options="" ) const;     // returns substituted string using std regex fmt; else returns unmodified string
-    val        replace( const std::regex& regex, const val& subst ) const;                   // same but uses precompiled std::regex
-    val        replace_all( const val& regex, const val& fmt, const val& options="" ) const; // same as replace(), but replaces all occurances iteratively 
-    val        replace_all( const std::regex& regex, const val& subst ) const;               // same but uses precompiled std::regex
+    val        replace( const std::regex& regex, const val& fmt ) const;                     // same but uses precompiled std::regex
+    val        replace_all( const val& regex, const val& fmt, const val& options="", uint64_t max=1000000 ) const; // same as replace(), but replaces all occurances up to some max
+    val        replace_all( const std::regex& regex, const val& fmt, uint64_t max=1000000 ) const;                 // same but uses precompiled std::regex
 
     // list or map operators
     uint64_t   size( void ) const;                              // number of entries in list or map
@@ -1283,11 +1283,9 @@ inline val val::match( const val& re, const val& options ) const
 
 inline val val::replace( const std::regex& regex, const val& fmt ) const
 {
-    // convert to strings 
     std::string s   = *this;
     std::string f_s = fmt;
-    std::string r = std::regex_replace( s, regex, f_s );
-    return r;
+    return std::regex_replace( s, regex, f_s );
 }
 
 inline val val::replace( const val& re, const val& fmt, const val& options ) const
@@ -1295,22 +1293,20 @@ inline val val::replace( const val& re, const val& fmt, const val& options ) con
     return replace( re.regex( options ), fmt );
 }
 
-inline val val::replace_all( const std::regex& regex, const val& fmt ) const
+inline val val::replace_all( const std::regex& regex, const val& fmt, uint64_t max ) const
 {
-    // convert to strings 
     std::string s   = *this;
     std::string f_s = fmt;
-    for( size_t i = 0; std::regex_search( s, regex ); i++ )
+    for( size_t i = 0; i < max && std::regex_search( s, regex ); i++ )
     {
-        csassert( i < 1000000000, "replace_all() detected an infinite loop" );
         s = std::regex_replace( s, regex, f_s );
     }
     return s;
 }
 
-inline val val::replace_all( const val& re, const val& fmt, const val& options ) const
+inline val val::replace_all( const val& re, const val& fmt, const val& options, uint64_t max ) const
 {
-    return replace_all( re.regex( options ), fmt );
+    return replace_all( re.regex( options ), fmt, max );
 }
 
 inline uint64_t val::size( void ) const
