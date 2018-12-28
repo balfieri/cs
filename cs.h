@@ -29,6 +29,7 @@
 
 #include <string>
 #include <cmath>
+#include <initializer_list>
 #include <vector>
 #include <map>
 #include <iostream>
@@ -83,9 +84,10 @@ public:
     val( std::string x );
     val( const val& x );
     val( CustomVal * x );
+    val( std::initializer_list<val> vals );                     // val{ a, b, c } returns a list containing a, b, c
    
-    static val list( void );
-    static val list( int64_t cnt, const char * args[] );
+    static val list( void );                                    // same as val{} (the latter is the preferred way)
+    static val list( int64_t cnt, const char * args[] );        // for turning main() argc and argv into a list
    
     static val map( void );
     static val map( val& key_val_list );                        // flattened list of: key0, val0, key1, val1, ...
@@ -161,13 +163,17 @@ public:
     _decl_aop2( *= )
     _decl_aop2( /= )
     _decl_aop2( %= )
-    _decl_aop2( <<= )
-    _decl_aop2( >>= )
+    _decl_aop2( <<= )                                                                        // if LHS is a LIST, then acts like push()
+    _decl_aop2( >>= )                                                                        // if LHS is a LIST, then acts like shift()
     _decl_aop2( &= )
     _decl_aop2( |= )
     _decl_aop2( ^= )
 
-    // string-only operations
+    // string-only 
+    //
+    char       at( const val& i ) const;                                                     // return character at index i 
+
+    // regular expressions - any val argument is first converted to a STR using std::string(), so careful how you use this
     //
     // regex option characters: 
     //     i  == case insensitive
@@ -186,7 +192,6 @@ public:
     //     $´ == the suffix (i.e., the part of the target sequence that follows the match)
     //     $$ == a single $ character
     //
-    char       at( const val& i ) const;                                                     // return character at index i 
     std::regex regex( const val& options="" ) const;                                         // returns compiled std::regex this regex string and options string
     val        match( const val& re, const val& options="" ) const;                          // returns LIST with entire match and submatches; else returns UNDEF
     val        match( const std::regex& regex ) const;                                       // same but uses precompiled std::regex
@@ -195,22 +200,23 @@ public:
     val        replace_all( const val& regex, const val& fmt, const val& options="", uint64_t max=1000000000 ) const; // same as replace(), but replaces all occurances up to max count
     val        replace_all( const std::regex& regex, const val& fmt, uint64_t max=1000000000 ) const;                 // same but uses precompiled std::regex
 
-    // list or map operators
-    uint64_t   size( void ) const;                              // number of entries in list or map
+    // list or map or string
+    uint64_t   size( void ) const;                              // number of entries in list or map, or number of characters in STR
+
+    // list or map 
     bool       exists( const val& key ) const;                  // returns true if key has a legal value in list/map
     const val& get( const val& key ) const;                     // read list/map using key 
     void       set( const val& key, const val& v );             // write list/map using key with v
-    ValProxy   operator[]( const val& key );                    // could be read or write
-    const val& operator[]( const val& key ) const;              // read only
+    ValProxy   operator [] ( const val& key );                  // could be read or write depending on context (which ValProxy will help disambiguate)
+    const val& operator [] ( const val& key ) const;            // read-only
 
-    // list-only operations
-    val&       push( const val& x );
-    val        shift( void );
-    val        split( const val delim = "" ) const;
-    val        join( const val delim = "" ) const;
-    val& operator , ( const val& b );                           // list concatenation
+    // list-only
+    val&       push( const val& x );                            // push x to tail
+    val        shift( void );                                   // pop head
+    val        split( const val delim = " " ) const;            // split using delimiter
+    val        join( const val delim = " " ) const;             // join  using delimiter
 
-    // map-only operations
+    // map-only 
 
     // function-only 
     val  operator () ( ... );                                   // call function with variable list of arguments
@@ -506,6 +512,12 @@ inline val::val( CustomVal * x )
     x->inc_ref_cnt();
     k = kind::CUSTOM;
     u.c = x;
+}
+
+inline val::val( std::initializer_list<val> vals )
+{
+    *this = list();
+    for( auto it = vals.begin(); it != vals.end(); it++ ) push( *it );
 }
 
 inline val::val( const val& x )
