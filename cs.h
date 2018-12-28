@@ -170,13 +170,13 @@ public:
     // string-only operations
     //
     // regex option characters: 
-    //     i == case insensitive
-    //     j == javascript
-    //     p == basic POSIX
-    //     P == extended POSIX
-    //     a == awk
-    //     g == grep
-    //     G == egrep
+    //     i  == case insensitive
+    //     j  == Javascript == ECMAScript        (default)
+    //     p  == basic POSIX
+    //     P  == extended POSIX
+    //     a  == awk
+    //     g  == grep
+    //     G  == egrep
     //
     // regex fmt special escape sequences:
     //     $n == n-th backreference (i.e., a copy of the n-th matched group specified with parentheses in the regex pattern).
