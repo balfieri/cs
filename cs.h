@@ -219,8 +219,8 @@ public:
     static val  exe_path( void );                               // full path of current executable
 
     // regular expressions
-    val         match( const val& regex ) const;                     // if current STR val matches regex, returns LIST with entire match, then submatches in order; else empty LIST
-    val         replace( const val& regex, const val& subst ) const; // if current STR val matches entire regex, return substituted string; else return UNDEF
+    val         match( const val& regex ) const;                     // if current STR val matches regex, returns LIST with entire match and submatches; else returns UNDEF
+    val         replace( const val& regex, const val& subst ) const; // if current STR val matches entire regex, returns substituted string;             else returns UNDEF
 
     // list/map iterator
     class iterator: public std::iterator< std::input_iterator_tag,   // iterator_category
@@ -1442,7 +1442,7 @@ inline val val::exe_path( void )
 inline val val::match( const val& regex ) const
 {
     (void)regex;
-    return list(); // TODO
+    return val(); // TODO
 }
 
 inline val val::replace( const val& regex, const val& subst ) const
