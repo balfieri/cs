@@ -204,22 +204,23 @@ public:
                                                                 //          "i,o,e"             - run async; return list of 3 file() for separate stdin, stdout and stderr
 
     // paths
-    val         path_dir( void );                               // parent directory of path
-    val         path_no_dir( void );                            // path without the parent directory
-    val         path_no_ext( void );                            // path without the file extension
-    int         path_stat( struct stat& stat );                 // do stat() system call on path
-    bool        path_exists( void );                            // returns true if path exists and caller can stat it
-    bool        path_is_file( void );                           // returns true if path is a plain file
-    bool        path_is_link( void );                           // returns true if path is a symbolic link
-    bool        path_is_fifo( void );                           // returns true if path is a pipe or FIFO
-    bool        path_is_socket( void );                         // returns true if path is a socket
-    bool        path_is_dir( void );                            // returns true if path is a directory
-    time_t      path_time_modified( void );                     // returns time last modified (seconds since 1970)
-    time_t      path_time_accessed( void );                     // returns time last accessed (seconds since 1970)
+    val         path_dir( void ) const;                         // parent directory of path
+    val         path_no_dir( void ) const;                      // path without the parent directory
+    val         path_no_ext( void ) const;                      // path without the file extension
+    int         path_stat( struct stat& stat ) const;           // do stat() system call on path
+    bool        path_exists( void ) const;                      // returns true if path exists and caller can stat it
+    bool        path_is_file( void ) const;                     // returns true if path is a plain file
+    bool        path_is_link( void ) const;                     // returns true if path is a symbolic link
+    bool        path_is_fifo( void ) const;                     // returns true if path is a pipe or FIFO
+    bool        path_is_socket( void ) const;                   // returns true if path is a socket
+    bool        path_is_dir( void ) const;                      // returns true if path is a directory
+    time_t      path_time_modified( void ) const;               // returns time last modified (seconds since 1970)
+    time_t      path_time_accessed( void ) const;               // returns time last accessed (seconds since 1970)
     static val  exe_path( void );                               // full path of current executable
 
     // regular expressions
-    // val x = y.matches( “regexp” )
+    val         match( const val& regex ) const;                     // if current STR val matches regex, returns LIST with entire match, then submatches in order; else empty LIST
+    val         replace( const val& regex, const val& subst ) const; // if current STR val matches entire regex, return substituted string; else return UNDEF
 
     // list/map iterator
     class iterator: public std::iterator< std::input_iterator_tag,   // iterator_category
@@ -1349,21 +1350,21 @@ val val::run( val options ) const
     return std::system( cmd.c_str() );
 }
 
-inline val val::path_dir( void )
+inline val val::path_dir( void ) const
 {
     csassert( k == kind::STR, "path_dir() must be called on a STR val" );
     size_t pos = u.s->s.find_last_of( "/\\" );
     return val( u.s->s.substr( 0, pos ) );
 }
 
-inline val val::path_no_dir( void )
+inline val val::path_no_dir( void ) const
 {
     csassert( k == kind::STR, "path_no_dir() must be called on a STR val" );
     size_t pos = u.s->s.find_last_of( "/\\" );
     return val( u.s->s.substr( pos+1 ) );
 }
 
-inline val val::path_no_ext( void )
+inline val val::path_no_ext( void ) const
 {
     csassert( k == kind::STR, "path_no_dir() must be called on a STR val" );
     size_t pos = u.s->s.find_last_of( "/\\." );
@@ -1371,49 +1372,49 @@ inline val val::path_no_ext( void )
     return (c == '.') ? val( u.s->s.substr( 0, pos-1 ) ) : *this;
 }
 
-int val::path_stat( struct stat& ss )
+int val::path_stat( struct stat& ss ) const
 {
     csassert( k == kind::STR, "path_stat() must be called on a STR val" );
     return stat( std::string( *this ).c_str(), &ss );
 }
 
-bool val::path_exists( void )
+bool val::path_exists( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0;
 }
 
-bool val::path_is_file( void )
+bool val::path_is_file( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0 && S_ISREG( ss.st_mode );
 }
 
-bool val::path_is_link( void )
+bool val::path_is_link( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0 && S_ISLNK( ss.st_mode );
 }
 
-bool val::path_is_fifo( void )
+bool val::path_is_fifo( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0 && S_ISFIFO( ss.st_mode );
 }
 
-bool val::path_is_socket( void )
+bool val::path_is_socket( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0 && S_ISSOCK( ss.st_mode );
 }
 
-bool val::path_is_dir( void )
+bool val::path_is_dir( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0 && S_ISDIR( ss.st_mode );
 }
 
-time_t val::path_time_modified( void )
+time_t val::path_time_modified( void ) const
 {
     struct stat ss;
     int r = path_stat( ss );
@@ -1421,7 +1422,7 @@ time_t val::path_time_modified( void )
     return ss.st_mtime;
 }
 
-time_t val::path_time_accessed( void )
+time_t val::path_time_accessed( void ) const
 {
     struct stat ss;
     int r = path_stat( ss );
@@ -1436,6 +1437,19 @@ inline val val::exe_path( void )
     int ret = proc_pidpath( pid, path, sizeof(path) );
     csassert( ret > 0, "proc_pidpath() had an error" );
     return val( path );
+}
+
+inline val val::match( const val& regex ) const
+{
+    (void)regex;
+    return list(); // TODO
+}
+
+inline val val::replace( const val& regex, const val& subst ) const
+{
+    (void)regex;
+    (void)subst;
+    return val();  // TODO
 }
 
 #endif // __cs_h
