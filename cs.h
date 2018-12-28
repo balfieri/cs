@@ -192,8 +192,8 @@ public:
     val        match( const std::regex& regex ) const;                                       // same but uses precompiled std::regex
     val        replace( const val& regex, const val& fmt, const val& options="" ) const;     // returns substituted string using std regex fmt; else returns unmodified string
     val        replace( const std::regex& regex, const val& fmt ) const;                     // same but uses precompiled std::regex
-    val        replace_all( const val& regex, const val& fmt, const val& options="", uint64_t max=1000000 ) const; // same as replace(), but replaces all occurances up to some max
-    val        replace_all( const std::regex& regex, const val& fmt, uint64_t max=1000000 ) const;                 // same but uses precompiled std::regex
+    val        replace_all( const val& regex, const val& fmt, const val& options="", uint64_t max=1000000000 ) const; // same as replace(), but replaces all occurances up to max count
+    val        replace_all( const std::regex& regex, const val& fmt, uint64_t max=1000000000 ) const;                 // same but uses precompiled std::regex
 
     // list or map operators
     uint64_t   size( void ) const;                              // number of entries in list or map
