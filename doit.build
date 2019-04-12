@@ -11,13 +11,10 @@ my $CFLAGS = "-std=gnu++0x -Wextra -Wstrict-aliasing -pedantic -Werror -Wcast-al
 
 print "Compiling cs...\n";
 cmd( "g++ -g -o ${prog} ${CFLAGS} ${prog}.cpp" );
-print "Success\n";
-print "\nFor fun, now compile cs using cs...\n";
+print "\nNow compile cs using cs...\n";
 cmd( "cs cs" );
-print "Success\n";
 print "\nNow compile and run eg/hello.cpp:\n";
 cmd( "cs eg/hello" );
-print "Success\n";
 
 sub cmd
 {
