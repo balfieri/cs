@@ -44,7 +44,7 @@ doit.build
 </pre>
 
 <p>
-The doit.build script then runs a couple sanity tests.</p>
+After building the CS program (which itself is a CS program), doit.build then runs a couple sanity tests using CS.</p>
 </p>
 
 <h1>Advanced</h1>
