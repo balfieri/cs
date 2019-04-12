@@ -13,8 +13,23 @@ This is all open-source with no restrictions.  See LICENSE.md for details (MIT l
 
 <p>
 The class "val" denotes a dynamically-typed value.  Vals can take on 
-various built-in types, including 64-bit ints, doubles, lists, maps, multi-dimensional 
-arrays, files, and threads.  Advanced users may add built-in types to val using the CustomVal class.
+various built-in types, including:</p>
+<ul>
+<li>64-bit int 
+<li>double 
+<li>bool
+<li>string
+<li>list
+<li>maps 
+<li>N-dimensional array
+<li>file
+<li>function
+<li>thread
+<li>process
+</ul>
+
+<p>
+Advanced users may add built-in types to val using the CustomVal class.
 </p>
 
 <p>
