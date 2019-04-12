@@ -15,7 +15,7 @@ This is all open-source with no restrictions.  See LICENSE.md for details (MIT l
 The class "val" denotes a dynamically-typed value.  Vals can take on 
 various built-in types, including:</p>
 <ul>
-<li>64-bit int 
+<li>int64_t
 <li>double 
 <li>bool
 <li>string - including support for regular expressions and paths
