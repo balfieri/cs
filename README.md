@@ -37,7 +37,15 @@ The best way to learn CS is by example, so let's get started.
 
 <h1>Basic</h1>
 
-TBD
+<h2>Build CS</h2>
+
+<pre>
+doit.build
+</pre>
+
+<p>
+Once built, cs can be used to compile and run cs itself. The doit.build script does this as a sanity check
+</p>
 
 <h1>Advanced</h1>
 
