@@ -44,7 +44,7 @@ doit.build
 </pre>
 
 <p>
-Once built, cs can be used to compile and run cs itself. The doit.build script does this as a sanity check
+The doit.build script then runs a couple sanity tests.</p>
 </p>
 
 <h1>Advanced</h1>

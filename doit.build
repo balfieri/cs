@@ -10,9 +10,18 @@ my $CFLAGS = "-std=gnu++0x -Wextra -Wstrict-aliasing -pedantic -Werror -Wcast-al
 `uname` =~ /Darwin/ and $CFLAGS .= " -Wno-unused-parameter -Wno-shift-negative-value -Wno-c++14-binary-literal -ferror-limit=10 -DNO_FMT_LLU";
 
 print "Compiling cs...\n";
-system( "g++ -g -o ${prog} ${CFLAGS} ${prog}.cpp" ) == 0 or die "ERROR: compile failed\n";
+cmd( "g++ -g -o ${prog} ${CFLAGS} ${prog}.cpp" );
 print "Success\n";
 print "For fun, now compile cs using cs...\n";
-print "cs cs\n";
-system( "cs cs" );
+cmd( "cs cs" );
 print "Success\n";
+print "Now compile and run eg/hello.cpp:\n";
+cmd( "cs eg/hello" );
+print "Success\n";
+
+sub cmd
+{
+    my $c = shift;
+    print $c . "\n";
+    system( $c ) == 0 or die "ERROR: command failed: $c\n";
+}
