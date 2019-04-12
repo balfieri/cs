@@ -18,10 +18,9 @@ various built-in types, including:</p>
 <li>64-bit int 
 <li>double 
 <li>bool
-<li>string
+<li>string - including support for regular expressions and paths
 <li>list
-<li>maps 
-<li>N-dimensional array
+<li>map
 <li>file
 <li>function
 <li>thread
@@ -29,7 +28,7 @@ various built-in types, including:</p>
 </ul>
 
 <p>
-Advanced users may add built-in types to val using the CustomVal class.
+Advanced users may add other built-in val types to val using the CustomVal class.
 </p>
 
 <p>
@@ -38,7 +37,11 @@ The best way to learn CS is by example, so let's get started.
 
 <h1>Basic</h1>
 
+TBD
+
 <h1>Advanced</h1>
+
+TBD
 
 <p>
 Bob Alfieri<br>
