@@ -1,4 +1,7 @@
 <p>
+Note: work in progress.
+
+<p>
 With the goal of having C++ be the only language one needs to learn, this 
 repo supplies a single header file (cs.h) that embeds a 
 dynamically-typed scripting language inside C++.  
