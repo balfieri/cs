@@ -370,13 +370,13 @@ static inline   std::ostream& operator << ( std::ostream &out, const val& x )
 //---------------------------------------------------------------------
 // Assertions
 //---------------------------------------------------------------------
-static inline void die( std::string msg )       
+static inline void csdie( std::string msg )       
 { 
     std::cout << "ERROR: " << msg << "\n"; 
     exit( 1 ); 
 }
 
-#define csassert( expr, msg ) if ( !(expr) ) die( msg )
+#define csassert( expr, msg ) if ( !(expr) ) csdie( msg )
 
 //---------------------------------------------------------------------
 // CustomVal Val - allows you to extend val
@@ -388,47 +388,47 @@ public:
     virtual ~CustomVal()                                        { csassert( ref_cnt == 0, "trying to destroy a CustomVal val when ref_cnt is not 0" ); }
 
     virtual std::string kind( void ) const                      { return "CustomVal"; }
-    virtual operator bool( void ) const                         { die( "no override available for CustomVal operator bool" );            return false; }
-    virtual operator int64_t( void ) const                      { die( "no override available for CustomVal operator int64_t" );         return 0;     }
-    virtual operator double( void ) const                       { die( "no override available for CustomVal operator double" );          return 0.0;   }
-    virtual operator std::string( void ) const                  { die( "no override available for CustomVal operator std::string" );     return "";    }
+    virtual operator bool( void ) const                         { csdie( "no override available for CustomVal operator bool" );            return false; }
+    virtual operator int64_t( void ) const                      { csdie( "no override available for CustomVal operator int64_t" );         return 0;     }
+    virtual operator double( void ) const                       { csdie( "no override available for CustomVal operator double" );          return 0.0;   }
+    virtual operator std::string( void ) const                  { csdie( "no override available for CustomVal operator std::string" );     return "";    }
 
-    virtual CustomVal  operator -  ( void ) const               { die( "no override available for CustomVal operator -" );               return *this; } 
-    virtual CustomVal  operator ~  ( void ) const               { die( "no override available for CustomVal operator ~" );               return *this; } 
-    virtual bool       operator !  ( void ) const               { die( "no override available for CustomVal operator !" );               return false; }
-    virtual CustomVal  operator +  ( const val& x ) const       { die( "no override available for CustomVal operator +" );      (void)x; return *this; } 
-    virtual CustomVal  operator -  ( const val& x ) const       { die( "no override available for CustomVal operator -" );      (void)x; return *this; } 
-    virtual CustomVal  operator *  ( const val& x ) const       { die( "no override available for CustomVal operator *" );      (void)x; return *this; } 
-    virtual CustomVal  operator /  ( const val& x ) const       { die( "no override available for CustomVal operator /" );      (void)x; return *this; } 
-    virtual CustomVal  operator %  ( const val& x ) const       { die( "no override available for CustomVal operator %" );      (void)x; return *this; } 
-    virtual CustomVal  operator &  ( const val& x ) const       { die( "no override available for CustomVal operator &" );      (void)x; return *this; } 
-    virtual bool       operator && ( const val& x ) const       { die( "no override available for CustomVal operator &&" );     (void)x; return *this; } 
-    virtual CustomVal  operator |  ( const val& x ) const       { die( "no override available for CustomVal operator |" );      (void)x; return *this; } 
-    virtual bool       operator || ( const val& x ) const       { die( "no override available for CustomVal operator ||" );     (void)x; return *this; } 
-    virtual CustomVal  operator ^  ( const val& x ) const       { die( "no override available for CustomVal operator ^" );      (void)x; return *this; } 
-    virtual CustomVal  operator << ( const val& x ) const       { die( "no override available for CustomVal operator <<" );     (void)x; return *this; }
-    virtual CustomVal  operator >> ( const val& x ) const       { die( "no override available for CustomVal operator >>" );     (void)x; return *this; }
-    virtual bool       operator <  ( const val& x ) const       { die( "no override available for CustomVal operator <" );      (void)x; return false; }
-    virtual bool       operator <= ( const val& x ) const       { die( "no override available for CustomVal operator <=" );     (void)x; return false; }
-    virtual bool       operator >  ( const val& x ) const       { die( "no override available for CustomVal operator >" );      (void)x; return false; }
-    virtual bool       operator >= ( const val& x ) const       { die( "no override available for CustomVal operator >=" );     (void)x; return false; }
-    virtual bool       operator != ( const val& x ) const       { die( "no override available for CustomVal operator !=" );     (void)x; return false; }
-    virtual bool       operator == ( const val& x ) const       { die( "no override available for CustomVal operator ==" );     (void)x; return false; }
+    virtual CustomVal  operator -  ( void ) const               { csdie( "no override available for CustomVal operator -" );               return *this; } 
+    virtual CustomVal  operator ~  ( void ) const               { csdie( "no override available for CustomVal operator ~" );               return *this; } 
+    virtual bool       operator !  ( void ) const               { csdie( "no override available for CustomVal operator !" );               return false; }
+    virtual CustomVal  operator +  ( const val& x ) const       { csdie( "no override available for CustomVal operator +" );      (void)x; return *this; } 
+    virtual CustomVal  operator -  ( const val& x ) const       { csdie( "no override available for CustomVal operator -" );      (void)x; return *this; } 
+    virtual CustomVal  operator *  ( const val& x ) const       { csdie( "no override available for CustomVal operator *" );      (void)x; return *this; } 
+    virtual CustomVal  operator /  ( const val& x ) const       { csdie( "no override available for CustomVal operator /" );      (void)x; return *this; } 
+    virtual CustomVal  operator %  ( const val& x ) const       { csdie( "no override available for CustomVal operator %" );      (void)x; return *this; } 
+    virtual CustomVal  operator &  ( const val& x ) const       { csdie( "no override available for CustomVal operator &" );      (void)x; return *this; } 
+    virtual bool       operator && ( const val& x ) const       { csdie( "no override available for CustomVal operator &&" );     (void)x; return *this; } 
+    virtual CustomVal  operator |  ( const val& x ) const       { csdie( "no override available for CustomVal operator |" );      (void)x; return *this; } 
+    virtual bool       operator || ( const val& x ) const       { csdie( "no override available for CustomVal operator ||" );     (void)x; return *this; } 
+    virtual CustomVal  operator ^  ( const val& x ) const       { csdie( "no override available for CustomVal operator ^" );      (void)x; return *this; } 
+    virtual CustomVal  operator << ( const val& x ) const       { csdie( "no override available for CustomVal operator <<" );     (void)x; return *this; }
+    virtual CustomVal  operator >> ( const val& x ) const       { csdie( "no override available for CustomVal operator >>" );     (void)x; return *this; }
+    virtual bool       operator <  ( const val& x ) const       { csdie( "no override available for CustomVal operator <" );      (void)x; return false; }
+    virtual bool       operator <= ( const val& x ) const       { csdie( "no override available for CustomVal operator <=" );     (void)x; return false; }
+    virtual bool       operator >  ( const val& x ) const       { csdie( "no override available for CustomVal operator >" );      (void)x; return false; }
+    virtual bool       operator >= ( const val& x ) const       { csdie( "no override available for CustomVal operator >=" );     (void)x; return false; }
+    virtual bool       operator != ( const val& x ) const       { csdie( "no override available for CustomVal operator !=" );     (void)x; return false; }
+    virtual bool       operator == ( const val& x ) const       { csdie( "no override available for CustomVal operator ==" );     (void)x; return false; }
 
-    virtual CustomVal& operator =  ( const val& x )             { die( "no override available for CustomVal operator =" );      (void)x; return *this; } 
-    virtual CustomVal& operator += ( const val& x )             { die( "no override available for CustomVal operator +=" );     (void)x; return *this; } 
-    virtual CustomVal& operator -= ( const val& x )             { die( "no override available for CustomVal operator -=" );     (void)x; return *this; } 
-    virtual CustomVal& operator *= ( const val& x )             { die( "no override available for CustomVal operator *=" );     (void)x; return *this; } 
-    virtual CustomVal& operator /= ( const val& x )             { die( "no override available for CustomVal operator /=" );     (void)x; return *this; } 
-    virtual CustomVal& operator %= ( const val& x )             { die( "no override available for CustomVal operator %=" );     (void)x; return *this; } 
-    virtual CustomVal& operator &= ( const val& x )             { die( "no override available for CustomVal operator &=" );     (void)x; return *this; } 
-    virtual CustomVal& operator |= ( const val& x )             { die( "no override available for CustomVal operator |=" );     (void)x; return *this; } 
-    virtual CustomVal& operator ^= ( const val& x )             { die( "no override available for CustomVal operator ^=" );     (void)x; return *this; } 
+    virtual CustomVal& operator =  ( const val& x )             { csdie( "no override available for CustomVal operator =" );      (void)x; return *this; } 
+    virtual CustomVal& operator += ( const val& x )             { csdie( "no override available for CustomVal operator +=" );     (void)x; return *this; } 
+    virtual CustomVal& operator -= ( const val& x )             { csdie( "no override available for CustomVal operator -=" );     (void)x; return *this; } 
+    virtual CustomVal& operator *= ( const val& x )             { csdie( "no override available for CustomVal operator *=" );     (void)x; return *this; } 
+    virtual CustomVal& operator /= ( const val& x )             { csdie( "no override available for CustomVal operator /=" );     (void)x; return *this; } 
+    virtual CustomVal& operator %= ( const val& x )             { csdie( "no override available for CustomVal operator %=" );     (void)x; return *this; } 
+    virtual CustomVal& operator &= ( const val& x )             { csdie( "no override available for CustomVal operator &=" );     (void)x; return *this; } 
+    virtual CustomVal& operator |= ( const val& x )             { csdie( "no override available for CustomVal operator |=" );     (void)x; return *this; } 
+    virtual CustomVal& operator ^= ( const val& x )             { csdie( "no override available for CustomVal operator ^=" );     (void)x; return *this; } 
 
-    virtual uint64_t   size( void ) const                       { die( "no override available for CustomVal size()" );                   return 0; }
-    virtual bool       exists( const val& k ) const             { die( "no override available for CustomVal exists()" );        (void)k; return false; }
-    virtual const val& get( const val& k ) const                { die( "no override available for CustomVal get()" );           (void)k; return undef; }
-    virtual void       set( const val& k, const val& x )        { die( "no override available for CustomVal set()" );           (void)k; (void)x;      }
+    virtual uint64_t   size( void ) const                       { csdie( "no override available for CustomVal size()" );                   return 0; }
+    virtual bool       exists( const val& k ) const             { csdie( "no override available for CustomVal exists()" );        (void)k; return false; }
+    virtual const val& get( const val& k ) const                { csdie( "no override available for CustomVal get()" );           (void)k; return undef; }
+    virtual void       set( const val& k, const val& x )        { csdie( "no override available for CustomVal set()" );           (void)k; (void)x;      }
 
 private:
     uint64_t ref_cnt;
@@ -622,7 +622,7 @@ inline val::operator bool( void ) const
         case kind::LIST:                return size() != 0;
         case kind::MAP:                 return size() != 0;
         case kind::CUSTOM:              return *u.c;
-        default:                        die( "can't convert " + kind_to_str(k) + " to bool" ); return false;
+        default:                        csdie( "can't convert " + kind_to_str(k) + " to bool" ); return false;
     }
 }
 
@@ -637,7 +637,7 @@ inline val::operator int64_t( void ) const
         case kind::LIST:                return size();
         case kind::MAP:                 return size();
         case kind::CUSTOM:              return *u.c;
-        default:                        die( "can't convert " + kind_to_str(k) + " to int64_t" ); return 0;
+        default:                        csdie( "can't convert " + kind_to_str(k) + " to int64_t" ); return 0;
     }
 }
 
@@ -651,7 +651,7 @@ inline val::operator double( void ) const
         case kind::LIST:                return double(size());
         case kind::MAP:                 return double(size());
         case kind::CUSTOM:              return *u.c;
-        default:                        die( "can't convert " + kind_to_str(k) + " to double" ); return 0.0;
+        default:                        csdie( "can't convert " + kind_to_str(k) + " to double" ); return 0.0;
     }
 }
 
@@ -665,7 +665,7 @@ inline val::operator std::string( void ) const
         case kind::STR:                 return u.s->s;
         case kind::LIST:                return join( " " );
         case kind::CUSTOM:              return *u.c;
-        default:                        die( "can't convert " + kind_to_str(k) + " to std::string" ); return "";
+        default:                        csdie( "can't convert " + kind_to_str(k) + " to std::string" ); return "";
     }
 }
 
@@ -713,7 +713,7 @@ inline val val::operator + ( const val& x ) const
             case kind::FLT:             return u.f + x.u.f;
             case kind::STR:             return u.s->s + x.u.s->s;
             case kind::LIST:            { val v = *this; v.push( x ); return v; }
-            default:                    die( kind_to_str( k ) + " + " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " + " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
@@ -726,7 +726,7 @@ inline val val::operator + ( const val& x ) const
             v.push( x );
             return v;
         } else {
-            die( kind_to_str( k ) + " + " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " + " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -743,14 +743,14 @@ inline val val::operator - ( const val& x ) const
         {
             case kind::INT:             return u.i - x.u.i;
             case kind::FLT:             return u.f - x.u.f;
-            default:                    die( kind_to_str( k ) + " - " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " - " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return double( *this ) - double( x );
         } else {
-            die( kind_to_str( k ) + " - " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " - " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -767,14 +767,14 @@ inline val val::operator * ( const val& x ) const
         {
             case kind::INT:             return u.i * x.u.i;
             case kind::FLT:             return u.f * x.u.f;
-            default:                    die( kind_to_str( k ) + " * " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " * " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return double( *this ) * double( x );
         } else {
-            die( kind_to_str( k ) + " * " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " * " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -789,14 +789,14 @@ inline val val::operator / ( const val& x ) const
         {
             case kind::INT:             return u.i / x.u.i;
             case kind::FLT:             return u.f / x.u.f;
-            default:                    die( kind_to_str( k ) + " / " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " / " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return double( *this ) / double( x );
         } else {
-            die( kind_to_str( k ) + " / " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " / " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -811,14 +811,14 @@ inline val val::operator % ( const val& x ) const
         {
             case kind::INT:             return u.i % x.u.i;
             case kind::FLT:             return std::remainder( u.f, x.u.f );
-            default:                    die( kind_to_str( k ) + " % " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " % " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return std::remainder( double( *this ), double( x ) );
         } else {
-            die( kind_to_str( k ) + " % " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " % " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -835,14 +835,14 @@ inline val val::operator & ( const val& x ) const
         {
             case kind::BOOL:            return u.b & x.u.i;
             case kind::INT:             return u.i & x.u.i;
-            default:                    die( kind_to_str( k ) + " & " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " & " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT  && x.k == kind::BOOL) ||
              (k == kind::BOOL && x.k == kind::INT) ) {
             return int64_t( *this ) & int64_t( x );
         } else {
-            die( kind_to_str( k ) + " & " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " & " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -864,14 +864,14 @@ inline val val::operator | ( const val& x ) const
         {
             case kind::BOOL:            return u.b | x.u.i;
             case kind::INT:             return u.i | x.u.i;
-            default:                    die( kind_to_str( k ) + " | " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " | " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT  || x.k == kind::BOOL) ||
              (k == kind::BOOL || x.k == kind::INT) ) {
             return int64_t( *this ) | int64_t( x );
         } else {
-            die( kind_to_str( k ) + " | " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " | " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -893,14 +893,14 @@ inline val val::operator ^ ( const val& x ) const
         {
             case kind::BOOL:            return u.b ^ x.u.i;
             case kind::INT:             return u.i ^ x.u.i;
-            default:                    die( kind_to_str( k ) + " | " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " | " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT  || x.k == kind::BOOL) ||
              (k == kind::BOOL || x.k == kind::INT) ) {
             return int64_t( *this ) ^ int64_t( x );
         } else {
-            die( kind_to_str( k ) + " ^ " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " ^ " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -917,7 +917,7 @@ inline val val::operator << ( const val& x ) const
             case kind::FLT:             return u.f * std::pow( 2.0, x.u.f );
             case kind::STR:             return u.s->s + x.u.s->s;
             case kind::LIST:            { val v = *this; v.push( x ); return v; }
-            default:                    die( kind_to_str( k ) + " << " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " << " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
@@ -930,7 +930,7 @@ inline val val::operator << ( const val& x ) const
             v.push( x );
             return v;
         } else {
-            die( kind_to_str( k ) + " << " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " << " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -945,14 +945,14 @@ inline val val::operator >> ( const val& x ) const
         {
             case kind::INT:             return u.i >> x.u.i;
             case kind::FLT:             return u.f / std::pow( 2.0, x.u.f );
-            default:                    die( kind_to_str( k ) + " >> " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " >> " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return double( *this ) / std::pow( 2.0, double( x ) );
         } else {
-            die( kind_to_str( k ) + " >> " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " >> " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -970,14 +970,14 @@ inline bool val::operator < ( const val& x ) const
             case kind::BOOL:            return u.b < x.u.b;
             case kind::INT:             return u.i < x.u.i;
             case kind::FLT:             return u.f < x.u.f;
-            default:                    die( kind_to_str( k ) + " < " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " < " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return double( *this ) < double( x );
         } else {
-            die( kind_to_str( k ) + " < " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " < " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -995,14 +995,14 @@ inline bool val::operator <= ( const val& x ) const
             case kind::BOOL:            return u.b <= x.u.b;
             case kind::INT:             return u.i <= x.u.i;
             case kind::FLT:             return u.f <= x.u.f;
-            default:                    die( kind_to_str( k ) + " <= " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " <= " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return double( *this ) <= double( x );
         } else {
-            die( kind_to_str( k ) + " <= " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " <= " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -1020,14 +1020,14 @@ inline bool val::operator > ( const val& x ) const
             case kind::BOOL:            return u.b > x.u.b;
             case kind::INT:             return u.i > x.u.i;
             case kind::FLT:             return u.f > x.u.f;
-            default:                    die( kind_to_str( k ) + " > " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " > " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return double( *this ) > double( x );
         } else {
-            die( kind_to_str( k ) + " > " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " > " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -1045,14 +1045,14 @@ inline bool val::operator >= ( const val& x ) const
             case kind::BOOL:            return u.b >= x.u.b;
             case kind::INT:             return u.i >= x.u.i;
             case kind::FLT:             return u.f >= x.u.f;
-            default:                    die( kind_to_str( k ) + " >= " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " >= " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return double( *this ) >= double( x );
         } else {
-            die( kind_to_str( k ) + " >= " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " >= " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -1071,14 +1071,14 @@ inline bool val::operator != ( const val& x ) const
             case kind::INT:             return u.i != x.u.i;
             case kind::FLT:             return u.f != x.u.f;
             case kind::STR:             return u.s->s != x.u.s->s;
-            default:                    die( kind_to_str( k ) + " != " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " != " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return double( *this ) != double( x );
         } else {
-            die( kind_to_str( k ) + " != " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " != " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -1097,14 +1097,14 @@ inline bool val::operator == ( const val& x ) const
             case kind::INT:             return u.i == x.u.i;
             case kind::FLT:             return u.f == x.u.f;
             case kind::STR:             return u.s->s == x.u.s->s;
-            default:                    die( kind_to_str( k ) + " == " + kind_to_str( x.k ) + " is not supported" ); return val();
+            default:                    csdie( kind_to_str( k ) + " == " + kind_to_str( x.k ) + " is not supported" ); return val();
         }
     } else {
         if ( (k == kind::INT && x.k == kind::FLT) ||
              (k == kind::FLT && x.k == kind::INT) ) {
             return double( *this ) == double( x );
         } else {
-            die( kind_to_str( k ) + " == " + kind_to_str( x.k ) + " is not supported" );
+            csdie( kind_to_str( k ) + " == " + kind_to_str( x.k ) + " is not supported" );
             return val();
         }
     }
@@ -1135,7 +1135,7 @@ inline val& val::operator += ( const val& x )
         case kind::STR:         u.s->s += std::string( x ); break;
         case kind::LIST:        push( x );                  break;
         case kind::CUSTOM:      *u.c += x;                  break;
-        default:                die( "+= not defined for " + kind_to_str( k ) ); break;
+        default:                csdie( "+= not defined for " + kind_to_str( k ) ); break;
     }
     return *this;
 }
@@ -1147,7 +1147,7 @@ inline val& val::operator -= ( const val& x )
         case kind::INT:         u.i  -= int64_t( x );       break;
         case kind::FLT:         u.f  -= double( x );        break;
         case kind::CUSTOM:      *u.c -= x;                  break;
-        default:                die( "-= not defined for " + kind_to_str( k ) ); break;
+        default:                csdie( "-= not defined for " + kind_to_str( k ) ); break;
     }
     return *this;
 }
@@ -1159,7 +1159,7 @@ inline val& val::operator *= ( const val& x )
         case kind::INT:         u.i  *= int64_t( x );       break;
         case kind::FLT:         u.f  *= double( x );        break;
         case kind::CUSTOM:      *u.c *= x;                  break;
-        default:                die( "*= not defined for " + kind_to_str( k ) ); break;
+        default:                csdie( "*= not defined for " + kind_to_str( k ) ); break;
     }
     return *this;
 }
@@ -1171,7 +1171,7 @@ inline val& val::operator /= ( const val& x )
         case kind::INT:         u.i  /= int64_t( x );       break;
         case kind::FLT:         u.f  /= double( x );        break;
         case kind::CUSTOM:      *u.c /= x;                  break;
-        default:                die( "/= not defined for " + kind_to_str( k ) ); break;
+        default:                csdie( "/= not defined for " + kind_to_str( k ) ); break;
     }
     return *this;
 }
@@ -1183,7 +1183,7 @@ inline val& val::operator %= ( const val& x )
         case kind::INT:         u.i  %= int64_t( x );       break;
         case kind::FLT:         u.f   = std::remainder( u.f, double( x ) ); break;
         case kind::CUSTOM:      *u.c %= x;                  break;
-        default:                die( "%= not defined for " + kind_to_str( k ) ); break;
+        default:                csdie( "%= not defined for " + kind_to_str( k ) ); break;
     }
     return *this;
 }
@@ -1195,7 +1195,7 @@ inline val& val::operator &= ( const val& x )
         case kind::BOOL:        u.b  &= bool( x );          break;
         case kind::INT:         u.i  &= int64_t( x );       break;
         case kind::CUSTOM:      *u.c &= x;                  break;
-        default:                die( "&= not defined for " + kind_to_str( k ) ); break;
+        default:                csdie( "&= not defined for " + kind_to_str( k ) ); break;
     }
     return *this;
 }
@@ -1207,7 +1207,7 @@ inline val& val::operator |= ( const val& x )
         case kind::BOOL:        u.b  |= bool( x );          break;
         case kind::INT:         u.i  |= int64_t( x );       break;
         case kind::CUSTOM:      *u.c |= x;                  break;
-        default:                die( "|= not defined for " + kind_to_str( k ) ); break;
+        default:                csdie( "|= not defined for " + kind_to_str( k ) ); break;
     }
     return *this;
 }
@@ -1219,7 +1219,7 @@ inline val& val::operator ^= ( const val& x )
         case kind::BOOL:        u.b  ^= bool( x );          break;
         case kind::INT:         u.i  ^= int64_t( x );       break;
         case kind::CUSTOM:      *u.c ^= x;                  break;
-        default:                die( "^= not defined for " + kind_to_str( k ) ); break;
+        default:                csdie( "^= not defined for " + kind_to_str( k ) ); break;
     }
     return *this;
 }
@@ -1277,7 +1277,7 @@ inline std::regex val::regex( const val& options ) const
             case 'a': flags |= std::regex_constants::awk;              got_grammar = true;     break;
             case 'g': flags |= std::regex_constants::grep;             got_grammar = true;     break;
             case 'G': flags |= std::regex_constants::egrep;            got_grammar = true;     break;
-            default: die( "unknown regex option character: " + std::to_string(ch) );           break;
+            default: csdie( "unknown regex option character: " + std::to_string(ch) );           break;
         }
     }
     if ( !got_grammar ) flags |= std::regex_constants::ECMAScript;
@@ -1357,7 +1357,7 @@ inline uint64_t val::size( void ) const
 
         default:
         {
-            die( "can't call size() on a " + kind_to_str(k) + " val" );  
+            csdie( "can't call size() on a " + kind_to_str(k) + " val" );  
             return false;
         }
     }
@@ -1386,7 +1386,7 @@ inline bool val::exists( const val& key ) const
 
         default:
         {
-            die( "can't call exists() on a " + kind_to_str(k) + " val" );  
+            csdie( "can't call exists() on a " + kind_to_str(k) + " val" );  
             return false;
         }
     }
@@ -1423,7 +1423,7 @@ inline const val& val::get( const val& key ) const
 
         default:
         {
-            die( "can't call get() on a " + kind_to_str(k) + " val" );  
+            csdie( "can't call get() on a " + kind_to_str(k) + " val" );  
             return undef;
         }
     }
@@ -1453,7 +1453,7 @@ inline void val::set( const val& key, const val& v )
 
         default:
         {
-            die( "can't call set() on a " + kind_to_str(k) + " val" );  
+            csdie( "can't call set() on a " + kind_to_str(k) + " val" );  
             break;
         }
     }
