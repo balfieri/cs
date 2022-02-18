@@ -292,12 +292,14 @@ public:
     #define foreach( it, x ) for( auto it = x.begin(); it != x.end(); it++ )
 
 
-    // reading/writing JSON files into val structures
-    // top_val = val::json_read( "my_file.json");
-    // top_val.json_write( "my_file.json" );
-    static val json_read( std::string name );
-    void       json_write( std::string name );
-
+    // reading/writing JSON files 
+    //     top_val = val::json_read( "my_file.json" );
+    //     top_val.json_write( "my_file.json" ); 
+    //
+    static val json_read( std::string file_name );
+    static val json_read( val file_name )                               { return json_read( val(file_name) );                }
+    void       json_write( std::string file_name );
+    void       json_write( val file_name )                              { json_write( val(file_name) );                      }
 
 //-----------------------------------------------------
 //-----------------------------------------------------
@@ -1638,11 +1640,11 @@ inline val val::exe_path( void )
 //--------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------
 //
-// JSON FILE I/O
+// FILE I/O
 //
 //--------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------
-val val::json_read( std::string json_file )
+val val::json_read( std::string file_name )
 {
     //------------------------------------------------------------
     // Map in .json file
@@ -1652,7 +1654,7 @@ val val::json_read( std::string json_file )
 
     char * json_start;
     char * json_end;
-    csassert( file_read( json_file, json_start, json_end ), "unable to read in " + json_file );
+    csassert( file_read( file_name, json_start, json_end ), "unable to read in " + file_name );
 
     //------------------------------------------------------------
     // Parse a map.
