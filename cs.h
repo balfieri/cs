@@ -76,7 +76,9 @@ public:
     // constructors
     val( void );
     val( bool x );
+    val( uint64_t x );
     val( int64_t x );
+    val( unsigned int x );
     val( int x );
     val( float x );
     val( double x );
@@ -105,6 +107,7 @@ public:
 
     // introspection
     bool        defined( void ) const;
+    bool        is_scalar( void ) const;
     std::string kind( void ) const;
 
     // conversions from val to common types
@@ -128,14 +131,14 @@ public:
     ret  operator op ( std::string x ) const		        { return *this op val( x ); }	\
 
     #define _decl_aop2( op ) \
-    val& operator op ( const val& x );                                                          \
-    val& operator op ( const int64_t x )      			{ return *this op val( x ); }	\
-    val& operator op ( const int x )      			{ return *this op val( x ); }	\
-    val& operator op ( const double x )      			{ return *this op val( x ); }	\
-    val& operator op ( const float x )      			{ return *this op val( x ); }	\
-    val& operator op ( const char * x )      			{ return *this op val( x ); }	\
-    val& operator op ( std::string x )      		        { return *this op val( x ); }	\
-    val& operator op ( CustomVal * x )      		        { return *this op val( x ); }	\
+    val& operator op ( const val& x );                                                                  \
+    val& operator op ( const int64_t x )      			{ *this op val( x ); return *this; }	\
+    val& operator op ( const int x )      			{ *this op val( x ); return *this; }	\
+    val& operator op ( const double x )      			{ *this op val( x ); return *this; }	\
+    val& operator op ( const float x )      			{ *this op val( x ); return *this; }	\
+    val& operator op ( const char * x )      			{ *this op val( x ); return *this; }	\
+    val& operator op ( std::string x )      		        { *this op val( x ); return *this; }	\
+    val& operator op ( CustomVal * x )      		        { *this op val( x ); return *this; }	\
 
     // meaning depends on the underlying type:
     _decl_op2( val,  +  )
@@ -157,7 +160,7 @@ public:
     _decl_op2( bool, != )
     _decl_op2( bool, == )
 
-    _decl_aop2( =  )
+    _decl_aop2(  = )
     _decl_aop2( += )
     _decl_aop2( -= )
     _decl_aop2( *= )
@@ -207,8 +210,22 @@ public:
     bool       exists( const val& key ) const;                  // returns true if key has a legal value in list/map
     const val& get( const val& key ) const;                     // read list/map using key 
     void       set( const val& key, const val& v );             // write list/map using key with v
-    ValProxy   operator [] ( const val& key );                  // could be read or write depending on context (which ValProxy will help disambiguate)
+    void       set( uint64_t key_u, const val& v )              { set( val(key_u), v ); }
+    void       set( uint32_t key_u, const val& v )              { set( val(key_u), v ); }
+    void       set( int64_t  key_i, const val& v )              { set( val(key_i), v ); }
+    void       set( int32_t  key_i, const val& v )              { set( val(key_i), v ); }
+    void       set( std::string key_s, const val& v )           { set( val(key_s), v ); }
+    void       set( const char * key_cs, const val& v )         { set( val(key_cs), v ); }
+//  ValProxy   operator [] ( const val& key );                  // could be read or write depending on context (which ValProxy will help disambiguate)
+//  ValProxy   operator [] ( std::string key_s );               // could be read or write depending on context (which ValProxy will help disambiguate)
+//  ValProxy   operator [] ( const char * key_s );              // could be read or write depending on context (which ValProxy will help disambiguate)
     const val& operator [] ( const val& key ) const;            // read-only
+    const val& operator [] ( uint64_t key_u ) const             { return (*this)[val(key_u)]; }
+    const val& operator [] ( uint32_t key_u ) const             { return (*this)[val(key_u)]; }
+    const val& operator [] ( int64_t key_i ) const              { return (*this)[val(key_i)]; }
+    const val& operator [] ( int32_t key_i ) const              { return (*this)[val(key_i)]; }
+    const val& operator [] ( std::string key_s ) const          { return (*this)[val(key_s)]; }
+    const val& operator [] ( const char * key_cs ) const        { return (*this)[val(key_cs)]; }
 
     // list-only
     val&       push( const val& x );                            // push x to tail
@@ -275,8 +292,11 @@ public:
     #define foreach( it, x ) for( auto it = x.begin(); it != x.end(); it++ )
 
 
-
-
+    // reading/writing JSON files into val structures
+    // top_val = val::json_read( "my_file.json");
+    // top_val.json_write( "my_file.json" );
+    static val json_read( std::string name );
+    void       json_write( std::string name );
 
 
 //-----------------------------------------------------
@@ -351,6 +371,39 @@ private:
     } u;
 
     void free( void );
+
+    // system utilities
+    static void cmd( std::string c, std::string error="command failed", bool echo=true );  // calls std::system and aborts if not success
+
+    // memory allocation utilities
+    template<typename T> static inline T *  aligned_alloc( uint64_t cnt );
+    template<typename T> static inline void perhaps_realloc( T *& array, const uint64_t& hdr_cnt, uint64_t& max_cnt, uint64_t add_cnt );
+
+    // file utilities
+    static bool file_read( std::string file_name, char *& start, char *& end );                        // sucks in entire file
+    static void file_write( std::string file_name, const unsigned char * data, uint64_t byte_cnt );
+
+    // parsing utilities for files sucked into memory
+    static uint32_t line_num;
+    static bool can_skip_comments;
+    static std::string surrounding_lines( char *& xxx, char *& xxx_end );
+    static bool skip_whitespace_to_eol( char *& xxx, char *& xxx_end );  // on this line only
+    static bool skip_whitespace( char *& xxx, char *& xxx_end );
+    static bool skip_to_eol( char *& xxx, char *& xxx_end );
+    static bool skip_through_eol( char *& xxx, char *& xxx_end );
+    static bool eol( char *& xxx, char *& xxx_end );
+    static bool expect_char( char ch, char *& xxx, char* xxx_end, bool skip_whitespace_first=false );
+    static bool expect_eol( char *& xxx, char*& xxx_end );
+    static bool expect_cmd( const char * s, char *& xxx, char *& xxx_end );
+    static bool parse_string( std::string& s, char *& xxx, char *& xxx_end );
+    static bool parse_name( char *& name, char *& xxx, char *& xxx_end );
+    static bool parse_id( std::string& id, char *& xxx, char *& xxx_end );
+    static bool parse_bool( bool& b, char *& xxx, char *& xxx_end );
+    static bool parse_real64( double& r, char *& xxx, char *& xxx_end, bool skip_whitespace_first=false );
+    static bool parse_int64( int64_t& i, char *& xxx, char *& xxx_end );
+    static bool parse_json_expr( val& v, char *& xxx, char *& xxx_end );
+    static bool parse_json_map( val& map, char *& xxx, char *& xxx_end );
+    static bool parse_json_list( val& list, char *& xxx, char *& xxx_end );
 };
 
 //---------------------------------------------------------------------
@@ -481,7 +534,19 @@ inline val::val( bool x )
     u.b = x;
 }
 
+inline val::val( uint64_t x )
+{
+    k = kind::INT;
+    u.i = x;
+}
+
 inline val::val( int64_t x )
+{
+    k = kind::INT;
+    u.i = x;
+}
+
+inline val::val( unsigned int x )
 {
     k = kind::INT;
     u.i = x;
@@ -605,6 +670,19 @@ inline val::~val()
 inline bool val::defined( void ) const
 {
     return k != kind::UNDEF;
+}
+
+inline bool val::is_scalar( void ) const
+{
+    switch( k )
+    {
+        case kind::UNDEF:               
+        case kind::BOOL:               
+        case kind::INT:               
+        case kind::FLT:               
+        case kind::STR:                 return true;
+        default:                        return false;
+    }
 }
 
 inline std::string val::kind( void ) const
@@ -1392,10 +1470,12 @@ inline bool val::exists( const val& key ) const
     }
 }
 
+#if 0
 inline       ValProxy::operator const val&( void ) const        { return v->get( *key );   }
 inline void  ValProxy::operator = ( const val& other )          { v->set( *key, other );   }
 
 inline ValProxy   val::operator [] ( const val& key )           { return ValProxy( this, &key ); }
+#endif
 inline const val& val::operator [] ( const val& key ) const     { return get( key ); }
 
 inline const val& val::get( const val& key ) const
@@ -1553,6 +1633,525 @@ inline val val::exe_path( void )
     int ret = proc_pidpath( pid, path, sizeof(path) );
     csassert( ret > 0, "proc_pidpath() had an error" );
     return val( path );
+}
+
+//--------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------
+//
+// JSON FILE I/O
+//
+//--------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------
+val val::json_read( std::string json_file )
+{
+    //------------------------------------------------------------
+    // Map in .json file
+    //------------------------------------------------------------
+    line_num = 1;
+    can_skip_comments = false; // no comments in .json files
+
+    char * json_start;
+    char * json_end;
+    csassert( file_read( json_file, json_start, json_end ), "unable to read in " + json_file );
+
+    //------------------------------------------------------------
+    // Parse a map.
+    //------------------------------------------------------------
+    val map;
+    char * json = json_start;
+    csassert( parse_json_map( map, json, json_end ), "unable to parse top-level map: " + surrounding_lines( json, json_end ) );
+    return map;
+}
+
+void val::json_write( std::string name )
+{
+    (void)name;
+    csdie( "json_write() not yet implemented" );
+}
+
+template<typename T>
+T * val::aligned_alloc( uint64_t cnt )
+{
+    void * mem = nullptr;
+    posix_memalign( &mem, getpagesize(), cnt*sizeof(T) );
+    return reinterpret_cast<T *>( mem );
+}
+
+template<typename T>
+inline void val::perhaps_realloc( T *& array, const uint64_t& hdr_cnt, uint64_t& max_cnt, uint64_t add_cnt )
+{
+    while( (hdr_cnt + add_cnt) > max_cnt ) 
+    {
+        void * mem = nullptr;
+        uint64_t old_max_cnt = max_cnt;
+        max_cnt *= 2;
+        if ( max_cnt < old_max_cnt ) {
+            max_cnt = uint(-1);
+        }
+        posix_memalign( &mem, getpagesize(), max_cnt*sizeof(T) );
+        memcpy( mem, array, hdr_cnt*sizeof(T) );
+        delete array;
+        array = reinterpret_cast<T *>( mem );
+    }
+}
+
+bool val::file_read( std::string file_path, char *& start, char *& end )
+{
+    const char * fname = file_path.c_str();
+    int fd = open( fname, O_RDONLY );
+    if ( fd < 0 ) std::cout << "file_read() error reading " << file_path << ": " << strerror( errno ) << "\n";
+    csassert( fd >= 0, "could not open file " + file_path + " - open() error: " + strerror( errno ) );
+
+    struct stat file_stat;
+    int status = fstat( fd, &file_stat );
+    if ( status < 0 ) {
+        close( fd );
+        csassert( 0, "could not stat file " + std::string(fname) + " - stat() error: " + strerror( errno ) );
+    }
+    size_t size = file_stat.st_size;
+
+    // this large read should behave like an mmap() inside the o/s kernel and be as fast
+    start = aligned_alloc<char>( size );
+    if ( start == nullptr ) {
+        close( fd );
+        csassert( 0, "could not read file " + std::string(fname) + " - malloc() error: " + strerror( errno ) );
+    }
+    end = start + size;
+
+    char * addr = start;
+    while( size != 0 ) 
+    {
+        size_t _this_size = 1024*1024*1024;
+        if ( size < _this_size ) _this_size = size;
+        if ( ::read( fd, addr, _this_size ) <= 0 ) {
+            close( fd );
+            csassert( 0, "could not read() file " + std::string(fname) + " - read error: " + strerror( errno ) );
+        }
+        size -= _this_size;
+        addr += _this_size;
+    }
+    close( fd );
+    return true;
+}
+
+void val::file_write( std::string file_path, const unsigned char * data, uint64_t byte_cnt )
+{
+    cmd( "rm -f '" + file_path + "'" );
+
+    int fd = open( file_path.c_str(), O_WRONLY|O_CREAT );
+    csassert( fd >= 0, "file_write() error opening " + file_path + " for writing: " + strerror( errno ) );
+
+    while( byte_cnt != 0 ) 
+    {
+        size_t _this_byte_cnt = 1024*1024*1024;
+        if ( byte_cnt < _this_byte_cnt ) _this_byte_cnt = byte_cnt;
+        if ( ::write( fd, data, _this_byte_cnt ) <= 0 ) {
+            close( fd );
+            csassert( 0, "could not write() file " + file_path + ": " + strerror( errno ) );
+        }
+        byte_cnt -= _this_byte_cnt;
+        data     += _this_byte_cnt;
+    }
+    close( fd );
+    cmd( "chmod +rw " + file_path );
+}
+
+void val::cmd( std::string c, std::string error, bool echo )
+{
+    if ( echo ) std::cout << c << "\n";
+    if ( std::system( c.c_str() ) != 0 ) csdie( "ERROR: " + error + ": " + c );
+}
+
+//--------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------
+//
+// PARSING UTILITIES
+//
+// These assume an in-memory copy of the entire file with xxx pointing to the 
+// current character and xxx_end pointing one character past the last character
+// in the file.
+//
+// For speed, these are self-contained and don't use any built-in C++ functions (slow).
+//
+// These functions can be used in non-graphics applications.
+//
+//--------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------
+uint32_t val::line_num = 0;
+bool     val::can_skip_comments = true;
+
+std::string val::surrounding_lines( char *& xxx, char *& xxx_end )
+{
+    uint eol_cnt = 0;
+    std::string s = "";
+    while( eol_cnt != 10 && xxx != xxx_end )
+    {
+        s += std::string( 1, *xxx ) ;
+        if ( *xxx == '\n' ) eol_cnt++;
+        xxx++;
+    }
+    s += "\n(around line " + std::to_string( line_num ) + ")\n";
+    return s;
+}
+
+inline bool val::skip_whitespace( char *& xxx, char *& xxx_end )
+{
+    bool in_comment = false;
+    for( ;; )
+    {
+        if ( xxx == xxx_end ) break;
+
+        char ch = *xxx;
+        if ( can_skip_comments && ch == '#' ) in_comment = true;
+        if ( !in_comment && ch != ' ' && ch != '\n' && ch != '\r' && ch != '\t' ) break;
+
+        if ( ch == '\n' || ch == '\r' ) {
+            if ( ch == '\n' ) line_num++;
+            in_comment = false;
+        }
+        xxx++;
+    }
+    return true;
+}
+
+inline bool val::skip_whitespace_to_eol( char *& xxx, char *& xxx_end )
+{
+    bool in_comment = false;
+    for( ;; )
+    {
+        if ( xxx == xxx_end ) break;
+
+        char ch = *xxx;
+        if ( can_skip_comments && ch == '#' ) in_comment = true;
+        if ( !in_comment && ch != ' ' && ch != '\n' && ch != '\r' && ch != '\t' ) break;
+
+        if ( ch == '\n' || ch == '\r' ) {
+            if ( ch == '\n' ) line_num++;
+            break;
+        }
+        xxx++;
+    }
+    return true;
+}
+
+inline bool val::skip_to_eol( char *& xxx, char *& xxx_end )
+{
+    if ( !eol( xxx, xxx_end ) ) {
+        while( xxx != xxx_end )
+        {
+            char ch = *xxx;
+            if ( ch == '\n' || ch == '\r' ) break;
+            xxx++;
+        }
+    }
+    return true;
+}
+
+inline bool val::skip_through_eol( char *& xxx, char *& xxx_end )
+{
+    while( !eol( xxx, xxx_end ) ) 
+    {
+        xxx++;
+    }
+    return true;
+}
+
+inline bool val::eol( char *& xxx, char *& xxx_end )
+{
+    skip_whitespace_to_eol( xxx, xxx_end );
+
+    if ( xxx == xxx_end || *xxx == '\n' || *xxx == '\r' ) {
+        if ( xxx != xxx_end ) {
+            if ( *xxx == '\n' ) line_num++;
+            xxx++;
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+inline bool val::expect_char( char ch, char *& xxx, char* xxx_end, bool skip_whitespace_first )
+{
+    if ( skip_whitespace_first ) skip_whitespace( xxx, xxx_end );
+    csassert( xxx != xxx_end, "premature end of file" );
+    csassert( *xxx == ch, "expected character '" + std::string(1, ch) + "' got '" + std::string( 1, *xxx ) + "' " + surrounding_lines( xxx, xxx_end ) );
+    xxx++;
+    return true;
+}
+
+inline bool val::expect_eol( char *& xxx, char *& xxx_end )
+{
+    if ( xxx != xxx_end ) {
+        csassert( *xxx == '\n' || *xxx == '\r', "not at eol" );
+        xxx++;
+    }
+    return true;
+}
+
+inline bool val::parse_string( std::string& s, char *& xxx, char *& xxx_end )
+{
+    if ( !expect_char( '"', xxx, xxx_end, true ) ) return false;
+    s = "";
+    for( ;; ) 
+    {
+        csassert( xxx != xxx_end, "no terminating \" for string" );
+        if ( *xxx == '"' ) {
+            xxx++;
+            return true;
+        }
+        if ( *xxx == '\\' ) {
+            xxx++;
+            if ( xxx == xxx_end ) return false;
+            switch( *xxx ) 
+            {
+                case 'b': s += '\b'; xxx++; break;
+                case 'f': s += '\f'; xxx++; break;
+                case 'n': s += '\n'; xxx++; break;
+                case 'r': s += '\r'; xxx++; break;
+                case 't': s += '\t'; xxx++; break;
+                case '"': s += '"';  xxx++; break;
+                case '\\': s += '\\';xxx++; break;
+                case '/': s += '/';  xxx++; break;
+                case 'u': 
+                {
+                    xxx++;
+                    uint32_t ucode = 0;
+                    for( uint32_t i = 0; i < 4; i++, xxx++ )
+                    {
+                        if ( xxx == xxx_end ) return false;    
+                        char ch = *xxx;
+                        uint32_t hex_digit;
+                        if ( ch >= '0' && ch <= '9' ) {
+                            hex_digit = ch - '0';
+                        } else if ( ch >= 'a' && ch <= 'f' ) {
+                            hex_digit = 10 + ch - 'a';
+                        } else if ( ch >= 'A' && ch <= 'F' ) {
+                            hex_digit = 10 + ch - 'A';
+                        } else {
+                            return false;
+                        }
+                        ucode *= 16;
+                        ucode += hex_digit;
+                    }
+                    csassert( ucode <= 0xff, "cannot parse ucodes that require 16-bit characters" );
+                    s += char( ucode );
+                    break;
+                }
+                default:             return false;
+            }
+        } else {
+            s += *xxx;
+            xxx++;
+        }
+    }
+}
+
+inline bool val::parse_id( std::string& id, char *& xxx, char *& xxx_end )
+{
+    skip_whitespace( xxx, xxx_end );
+
+    id = "";
+    while( xxx != xxx_end )
+    {
+        char ch = *xxx;
+        if ( !( ch == '_' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (id != "" && ch >= '0' && ch <= '9')) ) break;
+
+        id += std::string( 1, ch );
+        xxx++;
+    }
+
+    return true;
+}
+
+inline bool val::parse_bool( bool& b, char *& xxx, char *& xxx_end )
+{
+    std::string id;
+    if ( !parse_id( id , xxx, xxx_end ) ) return false;
+    b = id == std::string( "true" );
+    return true;
+}
+
+inline bool val::parse_real64( double& r64, char *& xxx, char *& xxx_end, bool skip_whitespace_first )
+{
+    if ( skip_whitespace_first ) skip_whitespace( xxx, xxx_end );   // can span lines unlike below
+    std::string s = "";
+    bool in_frac = false;
+    bool has_exp = false;
+    while( xxx != xxx_end && (*xxx == ' ' || *xxx == '\t') ) xxx++;  // skip leading spaces
+
+    while( xxx != xxx_end )
+    {
+        char ch = *xxx;
+
+        if ( ch == 'n' || ch == 'N' ) {
+            // better be a NaN
+            xxx++;
+            if ( xxx == xxx_end || (*xxx != 'a' && *xxx != 'A') ) return false;
+            xxx++;
+            if ( xxx == xxx_end || (*xxx != 'n' && *xxx != 'N') ) return false;
+            xxx++;
+            r64 = 0.0;                    // make them zeros
+            return true;
+        }
+
+        if ( ch == '-' && !in_frac ) {
+            s += "-";
+            xxx++;
+            continue;
+        }
+
+        if ( ch == '.' && !in_frac ) {
+            s += ".";
+            in_frac = true;
+            xxx++;
+            continue;
+        }
+
+        if ( ch == 'e' || ch == 'E' ) {
+            csassert( !has_exp, "real64 has more than one 'e' exponent" );
+            has_exp = true;
+            s += std::string( 1, ch );
+            xxx++;
+            int64_t e10;
+            if ( !parse_int64( e10, xxx, xxx_end ) ) return false;
+            s += std::to_string( e10 );
+            continue;
+        }
+
+        if ( ch < '0' || ch > '9' ) break;
+
+        s += std::string( 1, ch );
+        xxx++;
+    }
+
+    csassert( s.length() != 0, "unable to parse real64 in file " + surrounding_lines( xxx, xxx_end ) );
+    r64 = std::atof( s.c_str() );
+    return true;
+}
+
+
+inline bool val::parse_int64( int64_t& i, char *& xxx, char *& xxx_end )
+{
+    bool vld = false;
+    i = 0;
+    while( xxx != xxx_end && (*xxx == ' ' || *xxx == '\t') ) xxx++;  // skip leading spaces
+
+    bool is_neg = false;
+    while( xxx != xxx_end )
+    {
+        char ch = *xxx;
+        if ( ch == '-' ) {
+            csassert( !is_neg, "too many minus signs" );
+            is_neg = true;
+            xxx++;
+            continue;
+        }
+
+        if ( ch < '0' || ch > '9' ) break;
+        xxx++;
+
+        i = i*10 + (ch - '0');
+        vld = true;
+    }
+
+    if ( is_neg ) i = -i;
+    csassert( vld, "unable to parse int" + surrounding_lines( xxx, xxx_end ) );
+    return true;
+}
+
+inline bool val::parse_json_expr( val& v, char *& xxx, char *& xxx_end )
+{
+    skip_whitespace( xxx, xxx_end );
+    if ( *xxx == '{' ) {
+        parse_json_map( v, xxx, xxx_end );
+    } else if ( *xxx == '[' ) {
+        parse_json_list( v, xxx, xxx_end );
+    } else if ( *xxx == '"' ) {
+        std::string s;
+        if ( !parse_string( s, xxx, xxx_end ) ) goto error;
+        v = val( s );
+    } else if ( *xxx == '-' || (*xxx >= '0' && *xxx <= '9') ) {
+        double r;
+        if ( !parse_real64( r, xxx, xxx_end ) ) goto error;
+        v = val( r );
+    } else {
+        std::string id;
+        if ( !parse_id( id, xxx, xxx_end ) ) goto error;
+        if ( id == "False" ) {
+            v = val( false );
+        } else if ( id == "True" ) {
+            v = val( true );
+        } else if ( id == "Null" ) {
+            v = val();
+        } else {
+            goto error;
+        }
+    }
+    return true;
+
+error:
+    csdie( "unable to parse json expr: " + surrounding_lines( xxx, xxx_end ) );
+    return false;
+}
+
+inline bool val::parse_json_map( val& map, char *& xxx, char *& xxx_end )
+{
+    map = val::map();
+    bool is_first = true;
+    if ( !expect_char( '{', xxx, xxx_end, true ) ) goto error;
+    for( ;; ) 
+    {
+        skip_whitespace( xxx, xxx_end );
+        if ( *xxx == '}' ) {
+            xxx++;
+            break;
+        }
+
+        if ( !is_first && !expect_char( ',', xxx, xxx_end ) ) goto error;
+
+        std::string name;
+        if ( !parse_string( name, xxx, xxx_end ) ) goto error;
+        if ( !expect_char( ':', xxx, xxx_end, true ) ) goto error;
+        val v;
+        parse_json_expr( v, xxx, xxx_end );
+        map.set( name, v );
+
+        is_first = false;
+    }
+    return map;
+
+error:
+    csdie( "unable to parse json map: " + surrounding_lines( xxx, xxx_end ) );
+    return false;
+}
+
+inline bool val::parse_json_list( val& list, char *& xxx, char *& xxx_end )
+{
+    list = val::list();
+    bool is_first = true;
+    if ( !expect_char( '[', xxx, xxx_end, true ) ) goto error;
+    for( ;; ) 
+    {
+        skip_whitespace( xxx, xxx_end );
+        if ( *xxx == ']' ) {
+            xxx++;
+            break;
+        }
+
+        if ( !is_first && !expect_char( ',', xxx, xxx_end ) ) goto error;
+
+        val v;
+        parse_json_expr( v, xxx, xxx_end );
+        list.push( v );
+
+        is_first = false;
+    }
+    return list;
+
+error:
+    csdie( "unable to parse json list: " + surrounding_lines( xxx, xxx_end ) );
+    return false;
 }
 
 #endif // __cs_h
