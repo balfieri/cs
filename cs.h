@@ -297,9 +297,7 @@ public:
     //     top_val.json_write( "my_file.json" ); 
     //
     static val json_read( std::string file_name );
-    static val json_read( val file_name )                               { return json_read( val(file_name) );                }
     void       json_write( std::string file_name );
-    void       json_write( val file_name )                              { json_write( val(file_name) );                      }
 
 //-----------------------------------------------------
 //-----------------------------------------------------
