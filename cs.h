@@ -234,6 +234,7 @@ public:
     val        join( const val delim = " " ) const;             // join  using delimiter
 
     // map-only 
+    std::vector<std::string> keys( void ) const;                // list of all keys
 
     // function-only 
     val  operator () ( ... );                                   // call function with variable list of arguments
@@ -1331,6 +1332,17 @@ inline val  val::join( const val delim ) const
     return val( s );
 }
 
+inline std::vector<std::string> val::keys( void ) const
+{
+    csassert( k == kind::MAP, "can only get keys for a MAP" );
+    std::vector<std::string> list;
+    for( auto it = u.m->m.begin(); it != u.m->m.end(); it++ )
+    {
+        list.push_back( it->first );
+    }
+    return list;
+}
+
 inline char val::at( const val& i ) const
 {
     csassert( k == kind::STR, "at() allowed only on STR" );    
@@ -1539,7 +1551,7 @@ inline void val::set( const val& key, const val& v )
     }
 }
 
-val val::run( val options ) const
+inline val val::run( val options ) const
 {
     csassert( options == "", "run() supports no options yet" );
     std::string cmd = *this;
@@ -1568,49 +1580,49 @@ inline val val::path_no_ext( void ) const
     return (c == '.') ? val( u.s->s.substr( 0, pos-1 ) ) : *this;
 }
 
-int val::path_stat( struct stat& ss ) const
+inline int val::path_stat( struct stat& ss ) const
 {
     csassert( k == kind::STR, "path_stat() must be called on a STR val" );
     return stat( std::string( *this ).c_str(), &ss );
 }
 
-bool val::path_exists( void ) const
+inline bool val::path_exists( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0;
 }
 
-bool val::path_is_file( void ) const
+inline bool val::path_is_file( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0 && S_ISREG( ss.st_mode );
 }
 
-bool val::path_is_link( void ) const
+inline bool val::path_is_link( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0 && S_ISLNK( ss.st_mode );
 }
 
-bool val::path_is_fifo( void ) const
+inline bool val::path_is_fifo( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0 && S_ISFIFO( ss.st_mode );
 }
 
-bool val::path_is_socket( void ) const
+inline bool val::path_is_socket( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0 && S_ISSOCK( ss.st_mode );
 }
 
-bool val::path_is_dir( void ) const
+inline bool val::path_is_dir( void ) const
 {
     struct stat ss;
     return path_stat( ss ) == 0 && S_ISDIR( ss.st_mode );
 }
 
-time_t val::path_time_modified( void ) const
+inline time_t val::path_time_modified( void ) const
 {
     struct stat ss;
     int r = path_stat( ss );
@@ -1618,7 +1630,7 @@ time_t val::path_time_modified( void ) const
     return ss.st_mtime;
 }
 
-time_t val::path_time_accessed( void ) const
+inline time_t val::path_time_accessed( void ) const
 {
     struct stat ss;
     int r = path_stat( ss );
@@ -1670,7 +1682,7 @@ void val::json_write( std::string name )
 }
 
 template<typename T>
-T * val::aligned_alloc( uint64_t cnt )
+inline T * val::aligned_alloc( uint64_t cnt )
 {
     void * mem = nullptr;
     posix_memalign( &mem, getpagesize(), cnt*sizeof(T) );
@@ -1756,7 +1768,7 @@ void val::file_write( std::string file_path, const unsigned char * data, uint64_
     cmd( "chmod +rw " + file_path );
 }
 
-void val::cmd( std::string c, std::string error, bool echo )
+inline void val::cmd( std::string c, std::string error, bool echo )
 {
     if ( echo ) std::cout << c << "\n";
     if ( std::system( c.c_str() ) != 0 ) csdie( "ERROR: " + error + ": " + c );
