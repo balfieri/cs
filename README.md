@@ -53,8 +53,10 @@ doit.build
 </pre>
 
 <p>
-After building the CS program (which itself is a CS program), doit.build then runs a couple sanity tests using CS.</p>
+After building the optional CS program (which itself is a CS program), doit.build then runs a couple sanity tests using CS.</p>
 </p>
+
+<h2>TBD</h2>
 
 I need to add a lot more examples.
 
