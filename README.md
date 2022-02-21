@@ -2,22 +2,19 @@
 Note: work in progress.
 
 <p>
-Have you ever wanted to use dynamic data structures in C++ that you find
-in interpreted languages like Python? Well, you've come to the right place.
-For lack of a better name, I call this C++ Script (CS).
-
-<p>
-So you can now use C++ as a scripting language, which means it might be
-the only language you may need to use. More importantly, you can mix and match
+Have you ever wanted to use dynamic data structures in C++ just as you
+do inside interpreted languages like Python? Well, you've come to the right place.
+For lack of a better name, I call this C++ Script (CS). It might be the
+only language you need to use because you can mix and match
 dynamic and statically-typed C++ in the same program. 
 
 <p>
-Another useful feature is that this class can read and write JSON.
-So you can store data in an industry-standard unstructured format
-and read it into C++ easily and have it show up like other dynamic data.
+Along the same lines, this class can read and write JSON, an industry-standarded
+unstructured ASCII format. So you can read JSON into C++ and have it show
+up like other dynamic data.
 
 <p>
-This is all open-source with no restrictions.  See LICENSE.md for details (MIT license).
+This is all open-source with no restrictions. See LICENSE.md for details (MIT license).
 </p>
 
 <p>
@@ -55,6 +52,8 @@ doit.build
 <p>
 After building the CS program (which itself is a CS program), doit.build then runs a couple sanity tests using CS.</p>
 </p>
+
+I need to add a lot more examples.
 
 <h1>Advanced</h1>
 
