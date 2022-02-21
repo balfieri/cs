@@ -1,7 +1,4 @@
 <p>
-Note: work in progress.
-
-<p>
 Have you ever wanted to use dynamic data structures in C++ just as you
 do inside interpreted languages like Python? Well, you've come to the right place.
 For lack of a better name, I call this C++ Script (CS). It might be the
