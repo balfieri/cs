@@ -2,20 +2,26 @@
 Note: work in progress.
 
 <p>
-With the goal of having C++ be the only language one needs to learn, this 
-repo supplies a single header file (cs.h) that embeds a 
-dynamically-typed scripting language inside C++.  
-For lack of a better name, it's called C++ Script (CS).
-CS can be used for one-off scripts as well as more complicated programs
-that contain a mixture of dynamically-typed and statically-typed code.
-</p>
+Have you ever wanted to use dynamic data structures in C++ that you find
+in interpreted languages like Python? Well, you've come to the right place.
+For lack of a better name, I call this C++ Script (CS).
+
+<p>
+So you can now use C++ as a scripting language, which means it might be
+the only language you may need to use. More importantly, you can mix and match
+dynamic and statically-typed C++ in the same program. 
+
+<p>
+Another useful feature is that this class can read and write JSON.
+So you can store data in an industry-standard unstructured format
+and read it into C++ easily and have it show up like other dynamic data.
 
 <p>
 This is all open-source with no restrictions.  See LICENSE.md for details (MIT license).
 </p>
 
 <p>
-The class "val" denotes a dynamically-typed value.  Vals can take on 
+As mentioned, the class "val" denotes a dynamically-typed value.  Vals can take on 
 various built-in types, including:</p>
 <ul>
 <li>int64_t
