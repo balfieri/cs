@@ -11,6 +11,12 @@ unstructured ASCII format. So you can read JSON into C++ and have it show
 up like other dynamic data.
 
 <p>
+cs.cpp is a (very optional) tiny program that implements a CS interpreter. You can build it using doit.build (which is a traditional script).
+Once the cs executable is built, you can "interpret" any C++ program by saying "cs my_prog". It will look for my_prog.cpp and compile and
+run it on the fly. In fact, cs can compile and run itself - "cs cs". I have tested doit.build and cs.cpp on macOS and Linux, but they should
+work on Cygwin with little or no modification.
+
+<p>
 This is all open-source with no restrictions. See LICENSE.md for details (MIT license).
 </p>
 
