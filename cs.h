@@ -25,7 +25,10 @@
 // a CustomVal type that can be used to add new val types.
 //
 // Future features:
-// - BJSON binary file format
+// - better string hashing scheme where we store keys as ints rather than strings
+// - binary file format (BJSON is not very good), even though JSON is pretty fast
+// - XML file format
+// - PLIST file format
 // 
 #ifndef __cs_h
 #define __cs_h

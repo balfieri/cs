@@ -8,8 +8,7 @@ dynamic and statically-typed C++ in the same program.
 <p>
 Along the same lines, this class can read and write JSON, an industry-standard
 unstructured ASCII format. So you can read JSON into C++ and have it show
-up like other dynamic data. In the near future, this class will also support BJSON,
-the binary version of JSON.
+up like other dynamic data. 
 
 <p>
 cs.cpp is a (very optional) tiny program that implements a CS interpreter. You can build it using doit.build (which is a traditional script).
