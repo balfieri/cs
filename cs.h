@@ -23,6 +23,9 @@
 // The main theme here is to use dynamic typing in the form of the "val" class.
 // Everything is a val.  There are some built-in val types.  There's also 
 // a CustomVal type that can be used to add new val types.
+//
+// Future features:
+// - BJSON binary file format
 // 
 #ifndef __cs_h
 #define __cs_h
@@ -31,7 +34,7 @@
 #include <cmath>
 #include <initializer_list>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
@@ -48,20 +51,25 @@
 #include <fcntl.h>
  
 // Proxy used by the [] operator to distinguish get() vs. set()
+// This is not working yet. Trying to follow this example:
+// https://stackoverflow.com/questions/3581981/overloading-the-c-indexing-subscript-operator-in-a-manner-that-allows-for-r
 //
 class val;
 
+//#define VAL_PROXY
+#ifdef VAL_PROXY
 class ValProxy
 {
 public:
-    ValProxy( val * v, const val * key ) : v(v), key(key) {}
-    operator const val&( void ) const;                                
-    void operator = ( const val& other );                      
+    ValProxy( val& v, const val& key ) : v(v), key(key) {}
+    operator val const&( void );                        // gets magically triggered for reads of val[key]
+    val& operator = ( const val& other );               // gets magically triggered for writes of val[key]
 
 private:
-    val *       v;
-    const val * key;
+    val&        v;
+    const val&  key;
 };
+#endif
 
 // dynamically-typed value
 //
@@ -78,10 +86,10 @@ public:
     val( bool x );
     val( uint64_t x );
     val( int64_t x );
-    val( unsigned int x );
-    val( int x );
-    val( float x );
+    val( uint32_t x );
+    val( int32_t x );
     val( double x );
+    val( float x );
     val( const char * x );
     val( std::string x );
     val( const val& x );
@@ -216,16 +224,29 @@ public:
     void       set( int32_t  key_i, const val& v )              { set( val(key_i), v ); }
     void       set( std::string key_s, const val& v )           { set( val(key_s), v ); }
     void       set( const char * key_cs, const val& v )         { set( val(key_cs), v ); }
-//  ValProxy   operator [] ( const val& key );                  // could be read or write depending on context (which ValProxy will help disambiguate)
-//  ValProxy   operator [] ( std::string key_s );               // could be read or write depending on context (which ValProxy will help disambiguate)
-//  ValProxy   operator [] ( const char * key_s );              // could be read or write depending on context (which ValProxy will help disambiguate)
-    const val& operator [] ( const val& key ) const;            // read-only
+
+    // these are magically triggered when this val is const
+    const val& operator [] ( const val& key ) const;            
     const val& operator [] ( uint64_t key_u ) const             { return (*this)[val(key_u)]; }
     const val& operator [] ( uint32_t key_u ) const             { return (*this)[val(key_u)]; }
     const val& operator [] ( int64_t key_i ) const              { return (*this)[val(key_i)]; }
     const val& operator [] ( int32_t key_i ) const              { return (*this)[val(key_i)]; }
+    const val& operator [] ( double key_f ) const               { return (*this)[val(key_f)]; }
+    const val& operator [] ( float key_f ) const                { return (*this)[val(key_f)]; }
     const val& operator [] ( std::string key_s ) const          { return (*this)[val(key_s)]; }
     const val& operator [] ( const char * key_cs ) const        { return (*this)[val(key_cs)]; }
+
+#ifdef VAL_PROXY
+    // these are magically triggered when this val is non-const and we don't know whether the [] is being used 
+    // to read or write val[key]; the ValProxy will sort that out (standard C++ practice)
+    ValProxy   operator [] ( const val& key )                   { return ValProxy( *this, key ); }
+    ValProxy   operator [] ( uint64_t key_u )                   { return (*this)[val(key_u)]; }
+    ValProxy   operator [] ( uint32_t key_u )                   { return (*this)[val(key_u)]; }
+    ValProxy   operator [] ( int64_t key_i )                    { return (*this)[val(key_i)]; }
+    ValProxy   operator [] ( int32_t key_i )                    { return (*this)[val(key_i)]; }
+    ValProxy   operator [] ( std::string key_s )                { return (*this)[val(key_s)]; }
+    ValProxy   operator [] ( const char * key_cs )              { return (*this)[val(key_cs)]; }
+#endif
 
     // list-only
     val&       push( const val& x );                            // push x to tail
@@ -357,7 +378,7 @@ private:
     struct Map
     {
         uint64_t                ref_cnt;
-        std::map<std::string,val> m;
+        std::unordered_map<std::string,val> m;
     };
 
     union
@@ -547,13 +568,13 @@ inline val::val( int64_t x )
     u.i = x;
 }
 
-inline val::val( unsigned int x )
+inline val::val( uint32_t x )
 {
     k = kind::INT;
     u.i = x;
 }
 
-inline val::val( int x )
+inline val::val( int32_t x )
 {
     k = kind::INT;
     u.i = x;
@@ -603,7 +624,7 @@ inline val::val( int64_t cnt, const char * args[] )
 inline val::val( std::initializer_list<val> vals )
 {
     *this = list();
-    for( auto it = vals.begin(); it != vals.end(); it++ ) push( *it );
+    for( auto val : vals ) push( val );
 }
 
 inline val::val( const val& x )
@@ -1336,9 +1357,9 @@ inline std::vector<std::string> val::keys( void ) const
 {
     csassert( k == kind::MAP, "can only get keys for a MAP" );
     std::vector<std::string> list;
-    for( auto it = u.m->m.begin(); it != u.m->m.end(); it++ )
+    for( auto it : u.m->m )
     {
-        list.push_back( it->first );
+        list.push_back( it.first );
     }
     return list;
 }
@@ -1482,11 +1503,9 @@ inline bool val::exists( const val& key ) const
     }
 }
 
-#if 0
-inline       ValProxy::operator const val&( void ) const        { return v->get( *key );   }
-inline void  ValProxy::operator = ( const val& other )          { v->set( *key, other );   }
-
-inline ValProxy   val::operator [] ( const val& key )           { return ValProxy( this, &key ); }
+#ifdef VAL_PROXY 
+inline       ValProxy::operator val const&( void )              { return v.get( key );   }
+inline val&  ValProxy::operator = ( const val& other )          { v.set( key, other ); return v; }
 #endif
 inline const val& val::operator [] ( const val& key ) const     { return get( key ); }
 
