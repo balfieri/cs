@@ -1727,7 +1727,7 @@ inline void val::perhaps_realloc( T *& array, const uint64_t& hdr_cnt, uint64_t&
         uint64_t old_max_cnt = max_cnt;
         max_cnt *= 2;
         if ( max_cnt < old_max_cnt ) {
-            max_cnt = uint(-1);
+            max_cnt = uint64_t(-1);
         }
         posix_memalign( &mem, getpagesize(), max_cnt*sizeof(T) );
         memcpy( mem, array, hdr_cnt*sizeof(T) );
@@ -1823,7 +1823,7 @@ bool     val::can_skip_comments = true;
 
 std::string val::surrounding_lines( char *& xxx, char *& xxx_end )
 {
-    uint eol_cnt = 0;
+    uint64_t eol_cnt = 0;
     std::string s = "";
     while( eol_cnt != 10 && xxx != xxx_end )
     {
