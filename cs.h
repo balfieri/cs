@@ -1714,7 +1714,7 @@ template<typename T>
 inline T * val::aligned_alloc( uint64_t cnt )
 {
     void * mem = nullptr;
-    posix_memalign( &mem, getpagesize(), cnt*sizeof(T) );
+    posix_memalign( &mem, sysconf( _SC_PAGESIZE ), cnt*sizeof(T) );
     return reinterpret_cast<T *>( mem );
 }
 
@@ -1729,7 +1729,7 @@ inline void val::perhaps_realloc( T *& array, const uint64_t& hdr_cnt, uint64_t&
         if ( max_cnt < old_max_cnt ) {
             max_cnt = uint64_t(-1);
         }
-        posix_memalign( &mem, getpagesize(), max_cnt*sizeof(T) );
+        posix_memalign( &mem, sysconf( _SC_PAGESIZE ), max_cnt*sizeof(T) );
         memcpy( mem, array, hdr_cnt*sizeof(T) );
         delete array;
         array = reinterpret_cast<T *>( mem );
