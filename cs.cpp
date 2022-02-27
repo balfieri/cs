@@ -22,6 +22,9 @@
 //
 // There's really not much to this.  You build this once using doit.build
 // in this directory.  Then put this directory on your PATH.
+// cs.h must be in a standard place or you would need to modify the 
+// -I below.
+//
 // If you put a line like this at the top of a .cpp script and make the file
 // executable, you can simply run the .cpp file as you would any script:
 //
@@ -33,15 +36,15 @@ int main( int argc, const char * argv[] )
 {
     csassert( argc > 1, "usage: cs <basename>" );
     val args     = val( argc-1, argv+1 );
-    val cs_dir   = val::exe_path().path_dir();
+    val cs_path  = ".";
     val exe_name = args.shift();
     val cpp_name = exe_name + ".cpp";
     csassert( cpp_name.path_exists(), val("cpp file ") + cpp_name + " does not exist" );
     val CFLAGS   = val( " -std=c++17 -O0 -Werror -Wextra -Wstrict-aliasing -pedantic" ) +
                         " -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization" +
                         " -Wformat=2 -Winit-self -Wmissing-include-dirs  -Woverloaded-virtual -Wredundant-decls -Wsign-promo" +
-                        " -Wstrict-overflow=5 -Wswitch-default -Wundef -g" +
-                        " -I \"" + cs_dir + "\"";
+                        " -Wstrict-overflow=5 -Wswitch-default -Wundef -g" + 
+                        " -I" + cs_path;
     val cmd = val("g++ ") + CFLAGS + " -o " + exe_name + " " + cpp_name;
     if ( cmd.run() != 0 ) csdie( "build failed" );
     if ( exe_name != "cs" ) {

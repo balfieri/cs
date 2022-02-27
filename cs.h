@@ -48,7 +48,6 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <libproc.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -306,7 +305,6 @@ public:
     bool        path_is_dir( void ) const;                      // returns true if path is a directory
     time_t      path_time_modified( void ) const;               // returns time last modified (seconds since 1970)
     time_t      path_time_accessed( void ) const;               // returns time last accessed (seconds since 1970)
-    static val  exe_path( void );                               // full path of current executable
 
     // list/map iterator
     class iterator: public std::iterator< std::input_iterator_tag,   // iterator_category
@@ -1676,15 +1674,6 @@ inline time_t val::path_time_accessed( void ) const
     int r = path_stat( ss );
     csassert( r == 0, "can't ss " + std::string( *this ) );
     return ss.st_atime;
-}
-
-inline val val::exe_path( void )
-{
-    pid_t pid = getpid();
-    char path[PROC_PIDPATHINFO_MAXSIZE];
-    int ret = proc_pidpath( pid, path, sizeof(path) );
-    csassert( ret > 0, "proc_pidpath() had an error" );
-    return val( path );
 }
 
 //--------------------------------------------------------------------------------------
