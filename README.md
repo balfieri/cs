@@ -14,7 +14,7 @@ up like other dynamic data.
 cs.cpp is a (very optional) tiny program that implements a CS interpreter. You can build it using doit.build (which is a traditional script).
 Once the cs executable is built, you can "interpret" any C++ program by saying "cs my_prog". It will look for my_prog.cpp and compile and
 run it on the fly. In fact, cs can compile and run itself - "cs cs". I have tested doit.build and cs.cpp on macOS and Linux, bug Cygwin does
-not yet build.
+not yet build. There is one caveat: you'll currently need to change cs.cpp to make sure -I<path> points to where cs.h can be found.
 
 <p>
 This is all open-source with no restrictions. See LICENSE.md for details (MIT license).
