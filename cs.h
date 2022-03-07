@@ -333,9 +333,11 @@ public:
 
     // reading/writing JSON files 
     //     top_val = val::json_read( "my_file.json" );
+    //     top_val = val::json_decode( buffer, buffer_len );
     //     top_val.json_write( "my_file.json" ); 
     //
     static val json_read( std::string file_name );
+    static val json_decode( void * buffer, size_t buffer_len );
     void       json_write( std::string file_name );
 
 //-----------------------------------------------------
@@ -419,30 +421,30 @@ private:
     template<typename T> static inline void perhaps_realloc( T *& array, const uint64_t& hdr_cnt, uint64_t& max_cnt, uint64_t add_cnt );
 
     // file utilities
-    static bool file_read( std::string file_name, char *& start, char *& end );                        // sucks in entire file
+    static bool file_read( std::string file_name, const char *& start, const char *& end );             // sucks in entire file
     static void file_write( std::string file_name, const unsigned char * data, uint64_t byte_cnt );
 
     // parsing utilities for files sucked into memory
     static uint32_t line_num;
     static bool can_skip_comments;
-    static std::string surrounding_lines( char *& xxx, char *& xxx_end );
-    static bool skip_whitespace_to_eol( char *& xxx, char *& xxx_end );  // on this line only
-    static bool skip_whitespace( char *& xxx, char *& xxx_end );
-    static bool skip_to_eol( char *& xxx, char *& xxx_end );
-    static bool skip_through_eol( char *& xxx, char *& xxx_end );
-    static bool eol( char *& xxx, char *& xxx_end );
-    static bool expect_char( char ch, char *& xxx, char* xxx_end, bool skip_whitespace_first=false );
-    static bool expect_eol( char *& xxx, char*& xxx_end );
-    static bool expect_cmd( const char * s, char *& xxx, char *& xxx_end );
-    static bool parse_string( std::string& s, char *& xxx, char *& xxx_end );
-    static bool parse_name( char *& name, char *& xxx, char *& xxx_end );
-    static bool parse_id( std::string& id, char *& xxx, char *& xxx_end );
-    static bool parse_bool( bool& b, char *& xxx, char *& xxx_end );
-    static bool parse_real64( double& r, char *& xxx, char *& xxx_end, bool skip_whitespace_first=false );
-    static bool parse_int64( int64_t& i, char *& xxx, char *& xxx_end );
-    static bool parse_json_expr( val& v, char *& xxx, char *& xxx_end );
-    static bool parse_json_map( val& map, char *& xxx, char *& xxx_end );
-    static bool parse_json_list( val& list, char *& xxx, char *& xxx_end );
+    static std::string surrounding_lines( const char *& xxx, const char * xxx_end );
+    static bool skip_whitespace_to_eol( const char *& xxx, const char * xxx_end );  // on this line only
+    static bool skip_whitespace( const char *& xxx, const char * xxx_end );
+    static bool skip_to_eol( const char *& xxx, const char * xxx_end );
+    static bool skip_through_eol( const char *& xxx, const char * xxx_end );
+    static bool eol( const char *& xxx, const char * xxx_end );
+    static bool expect_char( char ch, const char *& xxx, const char* xxx_end, bool skip_whitespace_first=false );
+    static bool expect_eol( const char *& xxx, const char* xxx_end );
+    static bool expect_cmd( const char * s, const char *& xxx, const char * xxx_end );
+    static bool parse_string( std::string& s, const char *& xxx, const char * xxx_end );
+    static bool parse_name( const char *& name, const char *& xxx, const char * xxx_end );
+    static bool parse_id( std::string& id, const char *& xxx, const char * xxx_end );
+    static bool parse_bool( bool& b, const char *& xxx, const char * xxx_end );
+    static bool parse_real64( double& r, const char *& xxx, const char * xxx_end, bool skip_whitespace_first=false );
+    static bool parse_int64( int64_t& i, const char *& xxx, const char * xxx_end );
+    static bool parse_json_expr( val& v, const char *& xxx, const char * xxx_end );
+    static bool parse_json_map( val& map, const char *& xxx, const char * xxx_end );
+    static bool parse_json_list( val& list, const char *& xxx, const char * xxx_end );
 };
 
 //---------------------------------------------------------------------
@@ -1691,15 +1693,24 @@ val val::json_read( std::string file_name )
     line_num = 1;
     can_skip_comments = false; // no comments in .json files
 
-    char * json_start;
-    char * json_end;
+    const char * json_start;
+    const char * json_end;
     csassert( file_read( file_name, json_start, json_end ), "unable to read in " + file_name );
 
     //------------------------------------------------------------
     // Parse a map.
     //------------------------------------------------------------
     val map;
-    char * json = json_start;
+    const char * json = json_start;
+    csassert( parse_json_map( map, json, json_end ), "unable to parse top-level map: " + surrounding_lines( json, json_end ) );
+    return map;
+}
+
+val val::json_decode( void * buffer, size_t buffer_len )
+{
+    val map;
+    const char * json = reinterpret_cast<const char *>( buffer );
+    const char * json_end = json + buffer_len;
     csassert( parse_json_map( map, json, json_end ), "unable to parse top-level map: " + surrounding_lines( json, json_end ) );
     return map;
 }
@@ -1736,7 +1747,7 @@ inline void val::perhaps_realloc( T *& array, const uint64_t& hdr_cnt, uint64_t&
     }
 }
 
-bool val::file_read( std::string file_path, char *& start, char *& end )
+bool val::file_read( std::string file_path, const char *& start, const char *& end )
 {
     const char * fname = file_path.c_str();
     int fd = open( fname, O_RDONLY );
@@ -1752,14 +1763,15 @@ bool val::file_read( std::string file_path, char *& start, char *& end )
     size_t size = file_stat.st_size;
 
     // this large read should behave like an mmap() inside the o/s kernel and be as fast
-    start = aligned_alloc<char>( size );
-    if ( start == nullptr ) {
+    char * _start = aligned_alloc<char>( size );
+    if ( _start == nullptr ) {
         close( fd );
         csassert( 0, "could not read file " + std::string(fname) + " - malloc() error: " + strerror( errno ) );
     }
+    start = _start;
     end = start + size;
 
-    char * addr = start;
+    char * addr = _start;
     while( size != 0 ) 
     {
         size_t _this_size = 1024*1024*1024;
@@ -1821,7 +1833,7 @@ inline void val::cmd( std::string c, std::string error, bool echo )
 uint32_t val::line_num = 0;
 bool     val::can_skip_comments = true;
 
-std::string val::surrounding_lines( char *& xxx, char *& xxx_end )
+std::string val::surrounding_lines( const char *& xxx, const char * xxx_end )
 {
     uint64_t eol_cnt = 0;
     std::string s = "";
@@ -1835,7 +1847,7 @@ std::string val::surrounding_lines( char *& xxx, char *& xxx_end )
     return s;
 }
 
-inline bool val::skip_whitespace( char *& xxx, char *& xxx_end )
+inline bool val::skip_whitespace( const char *& xxx, const char * xxx_end )
 {
     bool in_comment = false;
     for( ;; )
@@ -1855,7 +1867,7 @@ inline bool val::skip_whitespace( char *& xxx, char *& xxx_end )
     return true;
 }
 
-inline bool val::skip_whitespace_to_eol( char *& xxx, char *& xxx_end )
+inline bool val::skip_whitespace_to_eol( const char *& xxx, const char * xxx_end )
 {
     bool in_comment = false;
     for( ;; )
@@ -1875,7 +1887,7 @@ inline bool val::skip_whitespace_to_eol( char *& xxx, char *& xxx_end )
     return true;
 }
 
-inline bool val::skip_to_eol( char *& xxx, char *& xxx_end )
+inline bool val::skip_to_eol( const char *& xxx, const char * xxx_end )
 {
     if ( !eol( xxx, xxx_end ) ) {
         while( xxx != xxx_end )
@@ -1888,7 +1900,7 @@ inline bool val::skip_to_eol( char *& xxx, char *& xxx_end )
     return true;
 }
 
-inline bool val::skip_through_eol( char *& xxx, char *& xxx_end )
+inline bool val::skip_through_eol( const char *& xxx, const char * xxx_end )
 {
     while( !eol( xxx, xxx_end ) ) 
     {
@@ -1897,7 +1909,7 @@ inline bool val::skip_through_eol( char *& xxx, char *& xxx_end )
     return true;
 }
 
-inline bool val::eol( char *& xxx, char *& xxx_end )
+inline bool val::eol( const char *& xxx, const char * xxx_end )
 {
     skip_whitespace_to_eol( xxx, xxx_end );
 
@@ -1912,7 +1924,7 @@ inline bool val::eol( char *& xxx, char *& xxx_end )
     }
 }
 
-inline bool val::expect_char( char ch, char *& xxx, char* xxx_end, bool skip_whitespace_first )
+inline bool val::expect_char( char ch, const char *& xxx, const char * xxx_end, bool skip_whitespace_first )
 {
     if ( skip_whitespace_first ) skip_whitespace( xxx, xxx_end );
     csassert( xxx != xxx_end, "premature end of file" );
@@ -1921,7 +1933,7 @@ inline bool val::expect_char( char ch, char *& xxx, char* xxx_end, bool skip_whi
     return true;
 }
 
-inline bool val::expect_eol( char *& xxx, char *& xxx_end )
+inline bool val::expect_eol( const char *& xxx, const char * xxx_end )
 {
     if ( xxx != xxx_end ) {
         csassert( *xxx == '\n' || *xxx == '\r', "not at eol" );
@@ -1930,7 +1942,7 @@ inline bool val::expect_eol( char *& xxx, char *& xxx_end )
     return true;
 }
 
-inline bool val::parse_string( std::string& s, char *& xxx, char *& xxx_end )
+inline bool val::parse_string( std::string& s, const char *& xxx, const char * xxx_end )
 {
     if ( !expect_char( '"', xxx, xxx_end, true ) ) return false;
     s = "";
@@ -1988,7 +2000,7 @@ inline bool val::parse_string( std::string& s, char *& xxx, char *& xxx_end )
     }
 }
 
-inline bool val::parse_id( std::string& id, char *& xxx, char *& xxx_end )
+inline bool val::parse_id( std::string& id, const char *& xxx, const char * xxx_end )
 {
     skip_whitespace( xxx, xxx_end );
 
@@ -2005,7 +2017,7 @@ inline bool val::parse_id( std::string& id, char *& xxx, char *& xxx_end )
     return true;
 }
 
-inline bool val::parse_bool( bool& b, char *& xxx, char *& xxx_end )
+inline bool val::parse_bool( bool& b, const char *& xxx, const char * xxx_end )
 {
     std::string id;
     if ( !parse_id( id , xxx, xxx_end ) ) return false;
@@ -2013,7 +2025,7 @@ inline bool val::parse_bool( bool& b, char *& xxx, char *& xxx_end )
     return true;
 }
 
-inline bool val::parse_real64( double& r64, char *& xxx, char *& xxx_end, bool skip_whitespace_first )
+inline bool val::parse_real64( double& r64, const char *& xxx, const char * xxx_end, bool skip_whitespace_first )
 {
     if ( skip_whitespace_first ) skip_whitespace( xxx, xxx_end );   // can span lines unlike below
     std::string s = "";
@@ -2072,7 +2084,7 @@ inline bool val::parse_real64( double& r64, char *& xxx, char *& xxx_end, bool s
 }
 
 
-inline bool val::parse_int64( int64_t& i, char *& xxx, char *& xxx_end )
+inline bool val::parse_int64( int64_t& i, const char *& xxx, const char * xxx_end )
 {
     bool vld = false;
     i = 0;
@@ -2101,7 +2113,7 @@ inline bool val::parse_int64( int64_t& i, char *& xxx, char *& xxx_end )
     return true;
 }
 
-inline bool val::parse_json_expr( val& v, char *& xxx, char *& xxx_end )
+inline bool val::parse_json_expr( val& v, const char *& xxx, const char * xxx_end )
 {
     skip_whitespace( xxx, xxx_end );
     if ( *xxx == '{' ) {
@@ -2136,7 +2148,7 @@ error:
     return false;
 }
 
-inline bool val::parse_json_map( val& map, char *& xxx, char *& xxx_end )
+inline bool val::parse_json_map( val& map, const char *& xxx, const char * xxx_end )
 {
     map = val::map();
     bool is_first = true;
@@ -2167,7 +2179,7 @@ error:
     return false;
 }
 
-inline bool val::parse_json_list( val& list, char *& xxx, char *& xxx_end )
+inline bool val::parse_json_list( val& list, const char *& xxx, const char * xxx_end )
 {
     list = val::list();
     bool is_first = true;
