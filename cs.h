@@ -1689,15 +1689,14 @@ val val::json_read( std::string file_name )
     line_num = 1;
     can_skip_comments = false; // no comments in .json files
 
-    const char * json_start;
+    const char * json;
     const char * json_end;
-    csassert( file_read( file_name, json_start, json_end ), "unable to read in " + file_name );
+    csassert( file_read( file_name, json, json_end ), "unable to read in " + file_name );
 
     //------------------------------------------------------------
     // Parse a map.
     //------------------------------------------------------------
     val map;
-    const char * json = json_start;
     csassert( parse_json_map( map, json, json_end ), "unable to parse top-level map: " + surrounding_lines( json, json_end ) );
     return map;
 }
