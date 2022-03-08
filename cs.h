@@ -419,7 +419,6 @@ private:
 
     // file utilities
     static bool file_read( std::string file_name, const char *& start, const char *& end );             // sucks in entire file
-    static void file_write( std::string file_name, const unsigned char * data, uint64_t byte_cnt );
 
     // parsing utilities for files sucked into memory
     static uint32_t line_num;
@@ -1739,28 +1738,6 @@ bool val::file_read( std::string file_path, const char *& start, const char *& e
     start = reinterpret_cast<const char *>( addr );
     end = start + size;
     return true;
-}
-
-void val::file_write( std::string file_path, const unsigned char * data, uint64_t byte_cnt )
-{
-    cmd( "rm -f '" + file_path + "'" );
-
-    int fd = open( file_path.c_str(), O_WRONLY|O_CREAT );
-    csassert( fd >= 0, "file_write() error opening " + file_path + " for writing: " + strerror( errno ) );
-
-    while( byte_cnt != 0 ) 
-    {
-        size_t _this_byte_cnt = 1024*1024*1024;
-        if ( byte_cnt < _this_byte_cnt ) _this_byte_cnt = byte_cnt;
-        if ( ::write( fd, data, _this_byte_cnt ) <= 0 ) {
-            close( fd );
-            csassert( 0, "could not write() file " + file_path + ": " + strerror( errno ) );
-        }
-        byte_cnt -= _this_byte_cnt;
-        data     += _this_byte_cnt;
-    }
-    close( fd );
-    cmd( "chmod +rw " + file_path );
 }
 
 inline void val::cmd( std::string c, std::string error, bool echo )
