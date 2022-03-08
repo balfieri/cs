@@ -51,6 +51,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/mman.h>
  
 // Proxy used by the [] operator to distinguish get() vs. set()
 // It roughly follows this example: https://stackoverflow.com/questions/3581981/overloading-the-c-indexing-subscript-operator-in-a-manner-that-allows-for-r
@@ -415,10 +416,6 @@ private:
 
     // system utilities
     static void cmd( std::string c, std::string error="command failed", bool echo=true );  // calls std::system and aborts if not success
-
-    // memory allocation utilities
-    template<typename T> static inline T *  aligned_alloc( uint64_t cnt );
-    template<typename T> static inline void perhaps_realloc( T *& array, const uint64_t& hdr_cnt, uint64_t& max_cnt, uint64_t add_cnt );
 
     // file utilities
     static bool file_read( std::string file_name, const char *& start, const char *& end );             // sucks in entire file
@@ -1721,32 +1718,6 @@ void val::json_write( std::string name )
     csdie( "json_write() not yet implemented" );
 }
 
-template<typename T>
-inline T * val::aligned_alloc( uint64_t cnt )
-{
-    void * mem = nullptr;
-    posix_memalign( &mem, sysconf( _SC_PAGESIZE ), cnt*sizeof(T) );
-    return reinterpret_cast<T *>( mem );
-}
-
-template<typename T>
-inline void val::perhaps_realloc( T *& array, const uint64_t& hdr_cnt, uint64_t& max_cnt, uint64_t add_cnt )
-{
-    while( (hdr_cnt + add_cnt) > max_cnt ) 
-    {
-        void * mem = nullptr;
-        uint64_t old_max_cnt = max_cnt;
-        max_cnt *= 2;
-        if ( max_cnt < old_max_cnt ) {
-            max_cnt = uint64_t(-1);
-        }
-        posix_memalign( &mem, sysconf( _SC_PAGESIZE ), max_cnt*sizeof(T) );
-        memcpy( mem, array, hdr_cnt*sizeof(T) );
-        delete array;
-        array = reinterpret_cast<T *>( mem );
-    }
-}
-
 bool val::file_read( std::string file_path, const char *& start, const char *& end )
 {
     const char * fname = file_path.c_str();
@@ -1762,28 +1733,11 @@ bool val::file_read( std::string file_path, const char *& start, const char *& e
     }
     size_t size = file_stat.st_size;
 
-    // this large read should behave like an mmap() inside the o/s kernel and be as fast
-    char * _start = aligned_alloc<char>( size );
-    if ( _start == nullptr ) {
-        close( fd );
-        csassert( 0, "could not read file " + std::string(fname) + " - malloc() error: " + strerror( errno ) );
-    }
-    start = _start;
+    // let mmap() choose an addr and make the region read-only
+    void * addr = mmap( 0, size, PROT_READ, MAP_FILE|MAP_SHARED, fd, 0 );
+    csassert( addr != MAP_FAILED, "file_read() mmap() call failed" );
+    start = reinterpret_cast<const char *>( addr );
     end = start + size;
-
-    char * addr = _start;
-    while( size != 0 ) 
-    {
-        size_t _this_size = 1024*1024*1024;
-        if ( size < _this_size ) _this_size = size;
-        if ( ::read( fd, addr, _this_size ) <= 0 ) {
-            close( fd );
-            csassert( 0, "could not read() file " + std::string(fname) + " - read error: " + strerror( errno ) );
-        }
-        size -= _this_size;
-        addr += _this_size;
-    }
-    close( fd );
     return true;
 }
 
