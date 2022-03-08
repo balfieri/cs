@@ -414,9 +414,6 @@ private:
 
     void free( void );
 
-    // system utilities
-    static void cmd( std::string c, std::string error="command failed", bool echo=true );  // calls std::system and aborts if not success
-
     // file utilities
     static bool file_read( std::string file_name, const char *& start, const char *& end );             // sucks in entire file
 
@@ -431,7 +428,6 @@ private:
     static bool eol( const char *& xxx, const char * xxx_end );
     static bool expect_char( char ch, const char *& xxx, const char* xxx_end, bool skip_whitespace_first=false );
     static bool expect_eol( const char *& xxx, const char* xxx_end );
-    static bool expect_cmd( const char * s, const char *& xxx, const char * xxx_end );
     static bool parse_string( std::string& s, const char *& xxx, const char * xxx_end );
     static bool parse_name( const char *& name, const char *& xxx, const char * xxx_end );
     static bool parse_id( std::string& id, const char *& xxx, const char * xxx_end );
@@ -1737,12 +1733,6 @@ bool val::file_read( std::string file_path, const char *& start, const char *& e
     start = reinterpret_cast<const char *>( addr );
     end = start + size;
     return true;
-}
-
-inline void val::cmd( std::string c, std::string error, bool echo )
-{
-    if ( echo ) std::cout << c << "\n";
-    if ( std::system( c.c_str() ) != 0 ) csdie( "ERROR: " + error + ": " + c );
 }
 
 //--------------------------------------------------------------------------------------
